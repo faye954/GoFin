@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>股票首页</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <!-- 顶部导航栏 -->
+  <div class="top-nav">
+    <div class="nav-item active">行情工具</div>
+    <div class="nav-item">资讯</div>
+    <div class="nav-item">牛牛周</div>
+    <div class="nav-item">关于我们</div>
+    <div class="nav-item">帮助</div>
+  </div>
+
+  <!-- 侧边栏 -->
+  <div class="sidebar">
+    <div class="logo">📈 富途牛牛</div>
+    <button class="favorites-btn">❤️ 自选</button>
+    
+    <div class="market-section">
+      <h4>美股市场</h4>
+      <div class="market-index up">
+        <div class="index-name">道琼斯</div>
+        <div class="index-value">44901.92</div>
+        <div class="index-change">+208.01 +0.47%</div>
+      </div>
+      <div class="market-index up">
+        <div class="index-name">纳斯达克</div>
+        <div class="index-value">21108.32</div>
+        <div class="index-change">+50.36 +0.24%</div>
+      </div>
+      <div class="market-index up">
+        <div class="index-name">标普500</div>
+        <div class="index-value">6388.64</div>
+        <div class="index-change">+25.29 +0.40%</div>
+      </div>
+    </div>
+    
+    <div class="stock-categories">
+      <h4>全部股票</h4>
+      <div class="category active">全部美股</div>
+      <div class="category">涨幅榜</div>
+      <div class="category">跌幅榜</div>
+      <div class="category">市值榜</div>
+      <div class="category">成交量榜</div>
+      <div class="category">成交额榜</div>
+    </div>
+  </div>
+
+  <!-- 主内容 -->
+  <div class="main">
+    <div class="stock-table-container">
+      <table class="stock-table">
+        <thead>
+          <tr>
+            <th>序号</th>
+            <th>代码</th>
+            <th>股票名称</th>
+            <th>最新价</th>
+            <th>涨跌额</th>
+            <th>涨跌幅</th>
+            <th>成交量</th>
+            <th>自选</th>
+          </tr>
+        </thead>
+        <tbody id="stock-table">
+          <!-- 股票数据将通过JS动态填充 -->
+        </tbody>
+      </table>
+      <div class="table-footer">
+        07/27 22:43（美元）
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const allStocks = [
+    { code: 'MCVT', name: 'Mill City Ventures III', price: 5900, change: 4050, changePercent: 218.92, volume: '1.16亿' },
+    { code: 'SMX', name: 'SMX (Security Mat...)', price: 2120, change: 1000, changePercent: 89.29, volume: '8097.83万' },
+    { code: 'LHAI', name: 'Linkhome', price: 10310, change: 4680, changePercent: 83.13, volume: '3349.49万' },
+    { code: 'OCTO', name: 'Eightco Holdings', price: 2460, change: 1030, changePercent: 72.03, volume: '5753.91万' },
+    { code: 'LIDR', name: 'AEye', price: 4435, change: 1515, changePercent: 51.88, volume: '3.32亿' },
+    { code: 'GIBO', name: 'GIBO Holdings', price: 0.0698, change: 0.0238, changePercent: 51.74, volume: '6.45亿' },
+    { code: 'HTOO', name: 'Fusion Fuel Green', price: 6990, change: 2260, changePercent: 47.78, volume: '1939.93万' }
+  ];
+
+  function renderStockTable() {
+    const tbody = document.getElementById('stock-table');
+    allStocks.forEach((stock, index) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${stock.code}</td>
+        <td>${stock.name}</td>
+        <td>${stock.price.toLocaleString()}</td>
+        <td class="up">+${stock.change.toLocaleString()}</td>
+        <td class="up">+${stock.changePercent.toFixed(2)}%</td>
+        <td>${stock.volume}</td>
+        <td><div class="favorite-star">○</div></td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  // 初始化页面
+  document.addEventListener('DOMContentLoaded', renderStockTable);
+</script>
+</body>
+</html>
