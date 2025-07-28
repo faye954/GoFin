@@ -80,36 +80,35 @@
 </div>
 
 <script>
-  const allStocks = [
-    { code: 'MCVT', name: 'Mill City Ventures III', price: 5900, change: 4050, changePercent: 218.92, volume: '1.16亿' },
-    { code: 'SMX', name: 'SMX (Security Mat...)', price: 2120, change: 1000, changePercent: 89.29, volume: '8097.83万' },
-    { code: 'LHAI', name: 'Linkhome', price: 10310, change: 4680, changePercent: 83.13, volume: '3349.49万' },
-    { code: 'OCTO', name: 'Eightco Holdings', price: 2460, change: 1030, changePercent: 72.03, volume: '5753.91万' },
-    { code: 'LIDR', name: 'AEye', price: 4435, change: 1515, changePercent: 51.88, volume: '3.32亿' },
-    { code: 'GIBO', name: 'GIBO Holdings', price: 0.0698, change: 0.0238, changePercent: 51.74, volume: '6.45亿' },
-    { code: 'HTOO', name: 'Fusion Fuel Green', price: 6990, change: 2260, changePercent: 47.78, volume: '1939.93万' }
-  ];
-
-  function renderStockTable() {
-    const tbody = document.getElementById('stock-table');
-    allStocks.forEach((stock, index) => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${index + 1}</td>
-        <td>${stock.code}</td>
-        <td>${stock.name}</td>
-        <td>${stock.price.toLocaleString()}</td>
-        <td class="up">+${stock.change.toLocaleString()}</td>
-        <td class="up">+${stock.changePercent.toFixed(2)}%</td>
-        <td>${stock.volume}</td>
-        <td><div class="favorite-star">○</div></td>
-      `;
-      tbody.appendChild(row);
-    });
-  }
-
-  // 初始化页面
-  document.addEventListener('DOMContentLoaded', renderStockTable);
-</script>
+    async function renderStockTable() {
+      const tbody = document.getElementById('stock-table');
+      tbody.innerHTML = '';
+  
+      try {
+        const res = await fetch('/api/quote/all');
+        const data = await res.json();
+  
+        data.forEach((stock, index) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${stock.ticker}</td>
+            <td>${stock.ticker}</td>
+            <td>${stock.price.toFixed(2)}</td>
+            <td class="${stock.change >= 0 ? 'up' : 'down'}">${stock.change >= 0 ? '+' : ''}${stock.change.toFixed(2)}</td>
+            <td class="${stock.changePercent >= 0 ? 'up' : 'down'}">${stock.changePercent >= 0 ? '+' : ''}${stock.changePercent.toFixed(2)}%</td>
+            <td>${Number(stock.volume).toLocaleString()}</td>
+            <td><div class="favorite-star">○</div></td>
+          `;
+          tbody.appendChild(row);
+        });
+      } catch (err) {
+        console.error('Failed to load stock data:', err);
+      }
+    }
+  
+    document.addEventListener('DOMContentLoaded', renderStockTable);
+  </script>
+  
 </body>
 </html>

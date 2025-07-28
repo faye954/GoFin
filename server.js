@@ -1,22 +1,21 @@
-// server.js
-const express = require('express');
-const app = express();
-const cors = require('cors');
 
-// const portfolioRoutes = require('./routes/portfolio');
-const financeRoutes = require('./routes/finance');
+const express = require('express');
+const cors = require('cors');
+const app = express();
+const quoteRoutes = require('./routes/quote'); // 注意路径是否正确
 
 app.use(cors());
 app.use(express.json());
 
-// app.use('/api/portfolio', portfolioRoutes);
-app.use('/api/quote', financeRoutes);
+// 注册路由
+app.use('/api/quote', quoteRoutes);
 
 const PORT = 3001;
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
 });
 
-const historyRoutes = require('./routes/history');
-app.use('/api/history', historyRoutes);
+const path = require('path');
 
+// 添加这行代码
+app.use(express.static(path.join(__dirname, 'public')));
