@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>自选股票 - StockPulse</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            secondary: '#0FC6C2',
+            success: '#00B42A',
+            danger: '#F53F3F',
+            warning: '#FF7D00',
+            info: '#86909C',
+            dark: '#1D2129',
+            light: '#F2F3F5'
+          },
+          fontFamily: {
+            inter: ['Inter', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .card-hover {
+        @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+      }
+      .btn-primary {
+        @apply bg-primary text-white px-4 py-2 rounded-lg transition-all duration-300 hover:bg-primary/90 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50;
+      }
+      .btn-secondary {
+        @apply bg-white border border-primary text-primary px-4 py-2 rounded-lg transition-all duration-300 hover:bg-primary/5 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50;
+      }
+    }
+  </style>
+</head>
+<body class="font-inter bg-gray-50 text-dark min-h-screen flex flex-col">
+  <!-- 导航栏 -->
+  <header class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center space-x-1">
+        <i class="fa fa-line-chart text-primary text-2xl"></i>
+        <h1 class="text-xl font-bold text-primary">StockPulse</h1>
+      </div>
+      
+      <nav class="hidden md:flex items-center space-x-6">
+        <a href="index.html" class="font-medium text-dark hover:text-primary transition-colors">首页</a>
+        <a href="favorites.html" class="font-medium text-primary border-b-2 border-primary pb-1">自选</a>
+        <!-- <a href="#" class="font-medium text-dark hover:text-primary transition-colors">市场</a>
+        <a href="#" class="font-medium text-dark hover:text-primary transition-colors">新闻</a> -->
+      </nav>
+      
+      <div class="flex items-center space-x-4">
+        <div class="relative hidden md:block">
+          <input type="text" placeholder="搜索股票..." class="pl-10 pr-4 py-2 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50 w-64">
+          <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+        </div>
+        
+        <button class="md:hidden text-dark text-xl">
+          <i class="fa fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主内容区 -->
+  <main class="flex-grow container mx-auto px-4 py-6">
+    <div class="flex flex-col md:flex-row gap-6">
+      <!-- 左侧：自选股列表 -->
+      <div class="md:w-2/3 bg-white rounded-xl shadow-sm p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold">我的自选</h2>
+          <button id="createPortfolioBtn" class="btn-primary hidden md:flex items-center">
+            <i class="fa fa-plus-circle mr-2"></i> 创建投资组合
+          </button>
+        </div>
+        
+        <div class="overflow-x-auto">
+          <table class="min-w-full">
+            <thead>
+              <tr class="border-b border-gray-200">
+                <th class="py-3 text-left text-sm font-medium text-gray-500">
+                  <div class="flex items-center">
+                    <input type="checkbox" id="selectAll" class="mr-2">
+                    股票代码
+                  </div>
+                </th>
+                <th class="py-3 text-left text-sm font-medium text-gray-500">名称</th>
+                <th class="py-3 text-left text-sm font-medium text-gray-500">价格</th>
+                <th class="py-3 text-left text-sm font-medium text-gray-500">涨跌幅</th>
+                <th class="py-3 text-left text-sm font-medium text-gray-500">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- 自选股数据会通过JavaScript动态生成 -->
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="mt-4 flex justify-between items-center md:hidden">
+          <button id="mobileCreatePortfolioBtn" class="btn-primary w-full flex items-center justify-center">
+            <i class="fa fa-plus-circle mr-2"></i> 创建投资组合
+          </button>
+        </div>
+      </div>
+      
+      <!-- 右侧：投资组合 -->
+      <div class="md:w-1/3 bg-white rounded-xl shadow-sm p-6">
+        <h2 class="text-xl font-bold mb-4">我的投资组合</h2>
+        
+        <div class="space-y-4">
+          <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer">
+            <div class="flex justify-between items-center">
+              <h3 class="font-medium">投资组合 1</h3>
+              <span class="text-success text-sm flex items-center">
+                <i class="fa fa-caret-up mr-1"></i> 5.24%
+              </span>
+            </div>
+            <p class="text-gray-500 text-sm mt-1">包含 5 支股票</p>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <span class="bg-blue-50 text-primary text-xs px-2 py-1 rounded-full">AAPL</span>
+              <span class="bg-blue-50 text-primary text-xs px-2 py-1 rounded-full">MSFT</span>
+              <span class="bg-blue-50 text-primary text-xs px-2 py-1 rounded-full">GOOGL</span>
+              <span class="bg-blue-50 text-primary text-xs px-2 py-1 rounded-full">AMZN</span>
+              <span class="bg-blue-50 text-primary text-xs px-2 py-1 rounded-full">TSLA</span>
+            </div>
+          </div>
+          
+          <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer">
+            <div class="flex justify-between items-center">
+              <h3 class="font-medium">投资组合 2</h3>
+              <span class="text-danger text-sm flex items-center">
+                <i class="fa fa-caret-down mr-1"></i> 1.87%
+              </span>
+            </div>
+            <p class="text-gray-500 text-sm mt-1">包含 4 支股票</p>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <span class="bg-blue-50 text-primary text-xs px-2 py-1 rounded-full">META</span>
+              <span class="bg-blue-50 text-primary text-xs px-2 py-1 rounded-full">NVDA</span>
+              <span class="bg-blue-50 text-primary text-xs px-2 py-1 rounded-full">TSLA</span>
+              <span class="bg-blue-50 text-primary text-xs px-2 py-1 rounded-full">AAPL</span>
+            </div>
+          </div>
+          
+          <div class="border border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center h-32 hover:bg-gray-50 transition-colors cursor-pointer">
+            <i class="fa fa-plus-circle text-gray-400 text-2xl mb-2"></i>
+            <p class="text-gray-500 text-sm">创建新的投资组合</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 创建投资组合模态框 -->
+  <div id="portfolioModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-lg p-6 transform transition-all">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold">创建投资组合</h3>
+        <button id="closeModal" class="text-gray-400 hover:text-gray-600">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+      
+      <form id="portfolioForm">
+        <div class="mb-4">
+          <label for="portfolioName" class="block text-sm font-medium text-gray-700 mb-1">组合名称</label>
+          <input type="text" id="portfolioName" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="输入投资组合名称">
+        </div>
+        
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-700 mb-1">选择股票</label>
+          <div id="selectedStocks" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-60 overflow-y-auto p-2 border border-gray-200 rounded-lg">
+            <!-- 选中的股票会通过JavaScript动态生成 -->
+          </div>
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+          <button type="button" id="cancelPortfolio" class="btn-secondary">取消</button>
+          <button type="submit" class="btn-primary">创建组合</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 页脚 -->
+  <footer class="bg-white border-t border-gray-200 mt-12">
+    <div class="container mx-auto px-4 py-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div>
+          <div class="flex items-center space-x-1 mb-4">
+            <i class="fa fa-line-chart text-primary text-xl"></i>
+            <h3 class="text-lg font-bold text-primary">StockPulse</h3>
+          </div>
+          <p class="text-gray-500 text-sm">专业的股票投资组合分析工具，帮助你做出更明智的投资决策。</p>
+        </div>
+        
+        <div>
+          <h4 class="font-semibold mb-4">产品</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="#" class="text-gray-500 hover:text-primary">股票分析</a></li>
+            <li><a href="#" class="text-gray-500 hover:text-primary">投资组合</a></li>
+            <li><a href="#" class="text-gray-500 hover:text-primary">市场概览</a></li>
+            <li><a href="#" class="text-gray-500 hover:text-primary">财经日历</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 class="font-semibold mb-4">支持</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="#" class="text-gray-500 hover:text-primary">帮助中心</a></li>
+            <li><a href="#" class="text-gray-500 hover:text-primary">使用教程</a></li>
+            <li><a href="#" class="text-gray-500 hover:text-primary">API文档</a></li>
+            <li><a href="#" class="text-gray-500 hover:text-primary">联系我们</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 class="font-semibold mb-4">关注我们</h4>
+          <div class="flex space-x-4 mb-4">
+            <a href="#" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-primary hover:text-white transition-colors">
+              <i class="fa fa-weibo"></i>
+            </a>
+            <a href="#" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-primary hover:text-white transition-colors">
+              <i class="fa fa-wechat"></i>
+            </a>
+            <a href="#" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-primary hover:text-white transition-colors">
+              <i class="fa fa-twitter"></i>
+            </a>
+          </div>
+          <p class="text-gray-500 text-sm">订阅我们的财经资讯</p>
+          <div class="mt-2 flex">
+            <input type="email" placeholder="您的邮箱地址" class="flex-grow px-3 py-2 rounded-l-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50">
+            <button class="bg-primary text-white px-4 py-2 rounded-r-lg">订阅</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="border-t border-gray-200 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+        <p class="text-gray-500 text-sm">© 2025 StockPulse. 保留所有权利。</p>
+        <div class="flex space-x-4 mt-4 md:mt-0">
+          <a href="#" class="text-gray-500 hover:text-primary text-sm">隐私政策</a>
+          <a href="#" class="text-gray-500 hover:text-primary text-sm">服务条款</a>
+          <a href="#" class="text-gray-500 hover:text-primary text-sm">免责声明</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // 股票行模板
+    function createFavoriteRow(stock) {
+      const changeClass = stock.change_percent >= 0 ? 'text-success' : 'text-danger';
+      const changeIcon = stock.change_percent >= 0 ? 'fa-caret-up' : 'fa-caret-down';
+      
+      return `
+        <tr class="border-b border-gray-100 hover:bg-gray-50">
+          <td class="py-3">
+            <div class="flex items-center">
+              <input type="checkbox" class="stock-checkbox mr-2" data-symbol="${stock.symbol}">
+              <span class="font-medium">${stock.symbol}</span>
+            </div>
+          </td>
+          <td class="py-3">${stock.name}</td>
+          <td class="py-3">¥${stock.price.toFixed(2)}</td>
+          <td class="py-3 ${changeClass}">
+            <i class="fa ${changeIcon} mr-1"></i> ${Math.abs(stock.change_percent).toFixed(2)}%
+          </td>
+          <td class="py-3">
+            <button class="text-gray-400 hover:text-danger" data-symbol="${stock.symbol}">
+              <i class="fa fa-heart"></i>
+            </button>
+          </td>
+        </tr>
+      `;
+    }
+    
+    // 选中的股票标签模板
+    function createSelectedStockTag(stock) {
+      return `
+        <div class="flex items-center justify-between bg-blue-50 text-primary px-2 py-1 rounded-full text-sm" data-symbol="${stock.symbol}">
+          ${stock.symbol}
+          <button class="ml-2 text-blue-500 hover:text-blue-700">
+            <i class="fa fa-times-circle"></i>
+          </button>
+        </div>
+      `;
+    }
+    
+    // 加载自选股数据
+    async function loadFavoriteStocks() {
+      try {
+        const response = await fetch('/api/stocks/favorites');
+        const stocks = await response.json();
+        
+        const tableBody = document.querySelector('tbody');
+        tableBody.innerHTML = '';
+        
+        if (stocks.length === 0) {
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="5" class="py-6 text-center text-gray-500">
+                <div class="mb-2">
+                  <i class="fa fa-folder-open-o text-4xl text-gray-300"></i>
+                </div>
+                <p>暂无自选股票</p>
+                <p class="text-sm mt-1">前往首页添加您感兴趣的股票</p>
+              </td>
+            </tr>
+          `;
+          document.getElementById('createPortfolioBtn').setAttribute('disabled', true);
+          document.getElementById('mobileCreatePortfolioBtn').setAttribute('disabled', true);
+          return;
+        }
+        
+        stocks.forEach(stock => {
+          tableBody.innerHTML += createFavoriteRow(stock);
+        });
+        
+        // 添加复选框事件
+        document.querySelectorAll('.stock-checkbox').forEach(checkbox => {
+          checkbox.addEventListener('change', updateSelectedStocks);
+        });
+        
+        // 全选复选框事件
+        document.getElementById('selectAll').addEventListener('change', function() {
+          document.querySelectorAll('.stock-checkbox').forEach(checkbox => {
+            checkbox.checked = this.checked;
+          });
+          updateSelectedStocks();
+        });
+        
+        // 添加移除收藏事件
+        document.querySelectorAll('td:last-child button').forEach(btn => {
+          btn.addEventListener('click', async function() {
+            const symbol = this.dataset.symbol;
+            
+            try {
+              await fetch(`/api/stocks/${symbol}/favorite`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ isFavorite: false })
+              });
+              
+              loadFavoriteStocks();
+            } catch (error) {
+              console.error('Error removing favorite:', error);
+              alert('操作失败，请稍后重试');
+            }
+          });
+        });
+        
+        // 启用创建投资组合按钮
+        document.getElementById('createPortfolioBtn').removeAttribute('disabled');
+        document.getElementById('mobileCreatePortfolioBtn').removeAttribute('disabled');
+      } catch (error) {
+        console.error('Error loading favorite stocks:', error);
+        alert('加载自选股数据失败，请稍后重试');
+      }
+    }
+    
+    // 更新选中的股票
+    function updateSelectedStocks() {
+      const selectedSymbols = Array.from(document.querySelectorAll('.stock-checkbox:checked'))
+        .map(checkbox => checkbox.dataset.symbol);
+      
+      const selectedStocksContainer = document.getElementById('selectedStocks');
+      selectedStocksContainer.innerHTML = '';
+      
+      if (selectedSymbols.length === 0) {
+        selectedStocksContainer.innerHTML = '<p class="text-gray-400 text-sm w-full text-center">未选择任何股票</p>';
+        return;
+      }
+      
+      // 从表格中获取选中的股票完整信息
+      selectedSymbols.forEach(symbol => {
+        const row = document.querySelector(`.stock-checkbox[data-symbol="${symbol}"]`).closest('tr');
+        const name = row.querySelector('td:nth-child(2)').textContent;
+        
+        const stock = { symbol, name };
+        selectedStocksContainer.innerHTML += createSelectedStockTag(stock);
+      });
+      
+      // 添加移除选中股票事件
+      selectedStocksContainer.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const symbol = this.closest('[data-symbol]').dataset.symbol;
+          document.querySelector(`.stock-checkbox[data-symbol="${symbol}"]`).checked = false;
+          updateSelectedStocks();
+        });
+      });
+    }
+    
+    // 打开创建投资组合模态框
+    function openPortfolioModal() {
+      const modal = document.getElementById('portfolioModal');
+      modal.classList.remove('hidden');
+      
+      // 初始化选中的股票
+      updateSelectedStocks();
+    }
+    
+    // 关闭创建投资组合模态框
+    function closePortfolioModal() {
+      const modal = document.getElementById('portfolioModal');
+      modal.classList.add('hidden');
+      
+      // 重置表单
+      document.getElementById('portfolioForm').reset();
+      document.getElementById('selectedStocks').innerHTML = '<p class="text-gray-400 text-sm w-full text-center">未选择任何股票</p>';
+    }
+    
+    // 提交创建投资组合表单
+    async function submitPortfolioForm(e) {
+      e.preventDefault();
+      
+      const portfolioName = document.getElementById('portfolioName').value.trim();
+      if (!portfolioName) {
+        alert('请输入投资组合名称');
+        return;
+      }
+      
+      const selectedSymbols = Array.from(document.querySelectorAll('.stock-checkbox:checked'))
+        .map(checkbox => checkbox.dataset.symbol);
+      
+      if (selectedSymbols.length === 0) {
+        alert('请至少选择一支股票');
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/portfolios', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: portfolioName, stockSymbols: selectedSymbols })
+        });
+        
+        const result = await response.json();
+        if (response.ok) {
+          alert('投资组合创建成功');
+          closePortfolioModal();
+          // 这里可以跳转到投资组合详情页
+          window.location.href = `dashboard.html?portfolioId=${result.id}`;
+        } else {
+          alert(`创建失败: ${result.error || '未知错误'}`);
+        }
+      } catch (error) {
+        console.error('Error creating portfolio:', error);
+        alert('创建投资组合失败，请稍后重试');
+      }
+    }
+    
+    // 页面加载完成后执行
+    document.addEventListener('DOMContentLoaded', () => {
+      loadFavoriteStocks();
+      
+      // 绑定创建投资组合按钮事件
+      document.getElementById('createPortfolioBtn').addEventListener('click', openPortfolioModal);
+      document.getElementById('mobileCreatePortfolioBtn').addEventListener('click', openPortfolioModal);
+      
+      // 绑定模态框关闭事件
+      document.getElementById('closeModal').addEventListener('click', closePortfolioModal);
+      document.getElementById('cancelPortfolio').addEventListener('click', closePortfolioModal);
+      
+      // 点击模态框外部关闭
+      document.getElementById('portfolioModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          closePortfolioModal();
+        }
+      });
+      
+      // 绑定表单提交事件
+      document.getElementById('portfolioForm').addEventListener('submit', submitPortfolioForm);
+    });
+  </script>
+</body>
+</html>  
