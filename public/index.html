@@ -67,6 +67,7 @@
       <nav class="hidden md:flex items-center space-x-6">
         <a href="index.html" id="nav-home" class="font-medium text-primary border-b-2 border-primary pb-1">首页</a>
         <a href="favorites.html" id="nav-favorites" class="font-medium text-dark hover:text-primary transition-colors">自选</a>
+        <a href="dashboard.html" id="nav-dashboard" class="font-medium text-dark hover:text-primary transition-colors">投资组合</a>
       </nav>
       
       <div class="flex items-center space-x-4">
@@ -371,12 +372,12 @@
     // 加载市场概览数据
     async function loadMarketOverview() {
       try {
-        const response = await fetch('https://m1.apifoxmock.com/m1/6852975-6567322-default/api/getMarketOverview');
+        const response = await fetch('http://localhost:3001/api/getMarketOverview');
         const result = await response.json();
 
         if (result.code === 200 && result.data && result.data.length) {
           // 更新更新时间
-          document.getElementById('update-time').textContent = `更新时间: ${result.data[0].updateTime}`;
+          document.getElementById('update-time').textContent = `更新时间(UTC-5): ${result.data[0].updateTime}`;
 
           // 更新各指数数据并初始化对应图表
           result.data.forEach(index => {
@@ -493,6 +494,7 @@
           });
         });
       } catch (error) {
+<<<<<<< HEAD
         console.error('Error loading market trends:', error);
         const tableBody = document.querySelector('#market-trends-table tbody');
         tableBody.innerHTML = `
@@ -500,6 +502,15 @@
             <td colspan="6" class="py-4 text-center text-danger">加载数据失败: ${error.message}</td>
           </tr>
         `;
+=======
+        // console.error('Error loading market trends:', error);
+        // const tableBody = document.querySelector('#market-trends-table tbody');
+        // tableBody.innerHTML = `
+        //   <tr>
+        //     <td colspan="5" class="py-4 text-center text-danger">加载数据失败: ${error.message}</td>
+        //   </tr>
+        // `;
+>>>>>>> origin/featurev0.2
       }
     }
 
