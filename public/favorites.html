@@ -285,8 +285,11 @@
             <i class="fa ${changeIcon} mr-1"></i> ${Math.abs(stock.change_percent).toFixed(2)}%
           </td>
           <td class="py-3">
-            <button class="text-gray-400 hover:text-danger" data-symbol="${stock.symbol}">
+            <button class="text-danger hover:text-danger remove-favorite" data-symbol="${stock.symbol}">
               <i class="fa fa-heart"></i>
+            </button>
+            <button class="text-gray-400 hover:text-danger ml-2 remove-stock" data-symbol="${stock.symbol}">
+              <i class="fa fa-trash"></i>
             </button>
           </td>
         </tr>
@@ -307,74 +310,82 @@
     
     // 加载自选股数据
     async function loadFavoriteStocks() {
-      try {
-        const response = await fetch('/api/stocks/favorites');
-        const stocks = await response.json();
-        
-        const tableBody = document.querySelector('tbody');
-        tableBody.innerHTML = '';
-        
-        if (stocks.length === 0) {
-          tableBody.innerHTML = `
-            <tr>
-              <td colspan="5" class="py-6 text-center text-gray-500">
-                <div class="mb-2">
-                  <i class="fa fa-folder-open-o text-4xl text-gray-300"></i>
-                </div>
-                <p>暂无自选股票</p>
-                <p class="text-sm mt-1">前往首页添加您感兴趣的股票</p>
-              </td>
-            </tr>
-          `;
-          document.getElementById('createPortfolioBtn').setAttribute('disabled', true);
-          document.getElementById('mobileCreatePortfolioBtn').setAttribute('disabled', true);
-          return;
-        }
-        
-        stocks.forEach(stock => {
-          tableBody.innerHTML += createFavoriteRow(stock);
-        });
-        
-        // 添加复选框事件
-        document.querySelectorAll('.stock-checkbox').forEach(checkbox => {
-          checkbox.addEventListener('change', updateSelectedStocks);
-        });
-        
-        // 全选复选框事件
-        document.getElementById('selectAll').addEventListener('change', function() {
-          document.querySelectorAll('.stock-checkbox').forEach(checkbox => {
-            checkbox.checked = this.checked;
-          });
-          updateSelectedStocks();
-        });
-        
-        // 添加移除收藏事件
-        document.querySelectorAll('td:last-child button').forEach(btn => {
-          btn.addEventListener('click', async function() {
-            const symbol = this.dataset.symbol;
-            
-            try {
-              await fetch(`/api/stocks/${symbol}/favorite`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ isFavorite: false })
-              });
-              
-              loadFavoriteStocks();
-            } catch (error) {
-              console.error('Error removing favorite:', error);
-              alert('操作失败，请稍后重试');
-            }
-          });
-        });
-        
-        // 启用创建投资组合按钮
-        document.getElementById('createPortfolioBtn').removeAttribute('disabled');
-        document.getElementById('mobileCreatePortfolioBtn').removeAttribute('disabled');
-      } catch (error) {
-        console.error('Error loading favorite stocks:', error);
-        alert('加载自选股数据失败，请稍后重试');
+      const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+      
+      const tableBody = document.querySelector('tbody');
+      tableBody.innerHTML = '';
+      
+      if (favorites.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="py-6 text-center text-gray-500">
+              <div class="mb-2">
+                <i class="fa fa-folder-open-o text-4xl text-gray-300"></i>
+              </div>
+              <p>暂无自选股票</p>
+              <p class="text-sm mt-1">前往首页添加您感兴趣的股票</p>
+            </td>
+          </tr>
+        `;
+        document.getElementById('createPortfolioBtn').setAttribute('disabled', true);
+        document.getElementById('mobileCreatePortfolioBtn').setAttribute('disabled', true);
+        return;
       }
+      
+      favorites.forEach(stock => {
+        tableBody.innerHTML += createFavoriteRow(stock);
+      });
+      
+      // 添加复选框事件
+      document.querySelectorAll('.stock-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelectedStocks);
+      });
+      
+      // 全选复选框事件
+      document.getElementById('selectAll').addEventListener('change', function() {
+        document.querySelectorAll('.stock-checkbox').forEach(checkbox => {
+          checkbox.checked = this.checked;
+        });
+        updateSelectedStocks();
+      });
+      
+      // 添加移除收藏事件
+      document.querySelectorAll('.remove-favorite').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const symbol = this.dataset.symbol;
+          let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+          favorites = favorites.filter(stock => stock.symbol !== symbol);
+          localStorage.setItem('favorites', JSON.stringify(favorites));
+          loadFavoriteStocks();
+          // 更新 index.html 中的爱心颜色
+          const indexHeart = document.querySelector(`.add-to-favorites[data-symbol="${symbol}"]`);
+          if (indexHeart) {
+            indexHeart.classList.remove('text-danger');
+            indexHeart.classList.add('text-gray-400');
+          }
+        });
+      });
+      
+      // 添加删除股票事件
+      document.querySelectorAll('.remove-stock').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const symbol = this.dataset.symbol;
+          let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+          favorites = favorites.filter(stock => stock.symbol !== symbol);
+          localStorage.setItem('favorites', JSON.stringify(favorites));
+          loadFavoriteStocks();
+          // 更新 index.html 中的爱心颜色
+          const indexHeart = document.querySelector(`.add-to-favorites[data-symbol="${symbol}"]`);
+          if (indexHeart) {
+            indexHeart.classList.remove('text-danger');
+            indexHeart.classList.add('text-gray-400');
+          }
+        });
+      });
+      
+      // 启用创建投资组合按钮
+      document.getElementById('createPortfolioBtn').removeAttribute('disabled');
+      document.getElementById('mobileCreatePortfolioBtn').removeAttribute('disabled');
     }
     
     // 更新选中的股票
@@ -489,7 +500,12 @@
       
       // 绑定表单提交事件
       document.getElementById('portfolioForm').addEventListener('submit', submitPortfolioForm);
+
+      // 监听 storage 事件，当 localStorage 变化时更新页面
+      window.addEventListener('storage', () => {
+        loadFavoriteStocks();
+      });
     });
   </script>
 </body>
-</html>  
+</html>
