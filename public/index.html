@@ -376,7 +376,7 @@
 
         if (result.code === 200 && result.data && result.data.length) {
           // 更新更新时间
-          document.getElementById('update-time').textContent = `更新时间: ${result.data[0].updateTime}`;
+          document.getElementById('update-time').textContent = `更新时间(UTC-5): ${result.data[0].updateTime}`;
 
           // 更新各指数数据并初始化对应图表
           result.data.forEach(index => {
