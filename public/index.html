@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GoFin</title>
+  <link rel="icon" href="../image/logo2.png" type="image/x-icon">
+  <link rel="shortcut icon" href="../image/logo2.png" type="image/x-icon">
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
@@ -494,15 +496,6 @@
           });
         });
       } catch (error) {
-<<<<<<< HEAD
-        console.error('Error loading market trends:', error);
-        const tableBody = document.querySelector('#market-trends-table tbody');
-        tableBody.innerHTML = `
-          <tr>
-            <td colspan="6" class="py-4 text-center text-danger">加载数据失败: ${error.message}</td>
-          </tr>
-        `;
-=======
         // console.error('Error loading market trends:', error);
         // const tableBody = document.querySelector('#market-trends-table tbody');
         // tableBody.innerHTML = `
@@ -510,7 +503,6 @@
         //     <td colspan="5" class="py-4 text-center text-danger">加载数据失败: ${error.message}</td>
         //   </tr>
         // `;
->>>>>>> origin/featurev0.2
       }
     }
 
