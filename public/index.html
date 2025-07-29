@@ -1,152 +1,608 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>股票首页</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-<div class="container">
-  <!-- 顶部导航栏 -->
-  <div class="top-nav">
-    <div class="nav-item active">行情工具</div>
-    <div class="nav-item">资讯</div>
-    <div class="nav-item">牛牛周</div>
-    <div class="nav-item">关于我们</div>
-    <div class="nav-item">帮助</div>
-  </div>
+  <title>GoFin - 整合版本</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- 侧边栏 -->
-  <div class="sidebar">
-    <div class="logo">📈 富途牛牛</div>
-    <button class="favorites-btn">❤️ 自选</button>
-    
-    <div class="market-section">
-        <h4>美股市场</h4>
-        <div class="market-index up">
-          <div class="index-name">道琼斯ETF（DIA）</div>
-          <div class="index-value" id="dji-value">--</div>
-          <div class="index-change" id="dji-change">--</div>
-        </div>
-        <div class="market-index up">
-          <div class="index-name">纳斯达克ETF（QQQ）</div>
-          <div class="index-value" id="ixic-value">--</div>
-          <div class="index-change" id="ixic-change">--</div>
-        </div>
-        <div class="market-index up">
-          <div class="index-name">标普500ETF（SPY）</div>
-          <div class="index-value" id="gspc-value">--</div>
-          <div class="index-change" id="gspc-change">--</div>
-        </div>
-      </div>
-      
-    
-    <div class="stock-categories">
-      <h4>全部股票</h4>
-      <div class="category active">全部美股</div>
-      <div class="category">涨幅榜</div>
-      <div class="category">跌幅榜</div>
-      <div class="category">市值榜</div>
-      <div class="category">成交量榜</div>
-      <div class="category">成交额榜</div>
-    </div>
-  </div>
-
-  <!-- 主内容 -->
-  <div class="main">
-    <div class="stock-table-container">
-      <table class="stock-table">
-        <thead>
-          <tr>
-            <th>序号</th>
-            <th>代码</th>
-            <th>股票名称</th>
-            <th>最新价</th>
-            <th>涨跌额</th>
-            <th>涨跌幅</th>
-            <th>成交量</th>
-            <th>自选</th>
-          </tr>
-        </thead>
-        <tbody id="stock-table">
-          <!-- 股票数据将通过JS动态填充 -->
-        </tbody>
-      </table>
-      <div class="table-footer">
-        07/27 22:43（美元）
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-    async function renderStockTable() {
-      const tbody = document.getElementById('stock-table');
-      tbody.innerHTML = '';
-  
-      try {
-        const res = await fetch('/api/quote/all');
-        const data = await res.json();
-  
-        data.forEach((stock, index) => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${stock.ticker}</td>
-            <td>${stock.ticker}</td>
-            <td>${stock.price.toFixed(2)}</td>
-            <td class="${stock.change >= 0 ? 'up' : 'down'}">${stock.change >= 0 ? '+' : ''}${stock.change.toFixed(2)}</td>
-            <td class="${stock.changePercent >= 0 ? 'up' : 'down'}">${stock.changePercent >= 0 ? '+' : ''}${stock.changePercent.toFixed(2)}%</td>
-            <td>${Number(stock.volume).toLocaleString()}</td>
-            <td><div class="favorite-star">○</div></td>
-          `;
-          tbody.appendChild(row);
-        });
-      } catch (err) {
-        console.error('Failed to load stock data:', err);
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            secondary: '#0FC6C2',
+            success: '#00B42A',
+            danger: '#F53F3F',
+            warning: '#FF7D00',
+            info: '#86909C',
+            dark: '#1D2129',
+            light: '#F2F3F5'
+          },
+          fontFamily: {
+            inter: ['Inter', 'sans-serif'],
+          },
+        },
       }
     }
-  
-    async function renderIndices() {
-  try {
-    const res = await fetch('/api/quote/market');
-    const data = await res.json();
-
-    data.forEach(index => {
-      const symbol = index.symbol.toUpperCase();
-      let id = null;
-
-      if (symbol === 'DIA') id = 'dji';
-      else if (symbol === 'QQQ') id = 'ixic';
-      else if (symbol === 'SPY') id = 'gspc';
-
-      if (id) {
-        const valueEl = document.getElementById(`${id}-value`);
-        const changeEl = document.getElementById(`${id}-change`);
-        const change = index.change.toFixed(2);
-        const pct = index.changePercent.toFixed(2);
-        const isUp = index.change >= 0;
-
-        valueEl.textContent = index.price.toFixed(2);
-        changeEl.textContent = `${isUp ? '+' : ''}${change} ${isUp ? '+' : ''}${pct}%`;
-        valueEl.parentElement.classList.toggle('up', isUp);
-        valueEl.parentElement.classList.toggle('down', !isUp);
-      }
-    });
-  } catch (err) {
-    console.error('Failed to load indices:', err);
-  }
-}
-
-
-  
-    document.addEventListener('DOMContentLoaded', () => {
-      renderStockTable();
-      renderIndices();
-    });
   </script>
-  
-  
+
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .card-hover {
+        @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+      }
+      .btn-primary {
+        @apply bg-primary text-white px-4 py-2 rounded-lg transition-all duration-300 hover:bg-primary/90 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50;
+      }
+      .btn-secondary {
+        @apply bg-white border border-primary text-primary px-4 py-2 rounded-lg transition-all duration-300 hover:bg-primary/5 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50;
+      }
+    }
+  </style>
+  <style>
+    /* 全局样式 */
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+
+    /* 容器布局 */
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* 顶部导航栏 */
+    .top-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50px;
+      background-color: #fff;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      z-index: 100;
+    }
+
+    .nav-item {
+      padding: 0 15px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .nav-item.active {
+      color: #1e88e5;
+      border-bottom: 2px solid #1e88e5;
+    }
+
+    /* 侧边栏 */
+    .sidebar {
+      width: 220px;
+      background: #fff;
+      padding: 70px 15px 20px 15px;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      overflow-y: auto;
+      box-shadow: 1px 0 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .logo {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      padding: 0 10px;
+      color: #1e88e5;
+    }
+
+    .favorites-btn {
+      width: 100%;
+      padding: 8px 0;
+      margin-bottom: 25px;
+      background-color: #1e88e5;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .market-section,
+    .stock-categories {
+      margin-bottom: 25px;
+    }
+
+    .market-section h4,
+    .stock-categories h4 {
+      font-size: 15px;
+      margin: 0 0 10px 0;
+      padding: 0 10px;
+      color: #666;
+    }
+
+    .market-index {
+      padding: 8px 10px;
+      margin-bottom: 5px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .market-index:hover {
+      background-color: #f5f5f5;
+    }
+
+    .index-name {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .index-value {
+      font-size: 16px;
+      font-weight: bold;
+      margin: 3px 0;
+    }
+
+    .index-change {
+      font-size: 12px;
+    }
+
+    .up {
+      color: #f44336;
+    }
+
+    .down {
+      color: #4caf50;
+    }
+
+    .category {
+      padding: 8px 10px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    .category:hover {
+      background-color: #f5f5f5;
+    }
+
+    .category.active {
+      background-color: #e3f2fd;
+      color: #1e88e5;
+    }
+
+    /* 主内容区域 */
+    .main {
+      flex: 1;
+      margin-left: 220px;
+      padding: 70px 20px 20px 20px;
+      background-color: #f5f5f5;
+    }
+
+    .stock-table-container {
+      background-color: #fff;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .stock-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .stock-table th {
+      background-color: #f9f9f9;
+      color: #666;
+      font-weight: normal;
+      padding: 12px 8px;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+    }
+
+    .stock-table td {
+      padding: 12px 8px;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+    }
+
+    .stock-table tr:hover {
+      background-color: #f5f5f5;
+    }
+
+    .favorite-star {
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .table-footer {
+      padding: 10px 15px;
+      font-size: 12px;
+      color: #999;
+      text-align: right;
+      background-color: #f9f9f9;
+      border-top: 1px solid #eee;
+    }
+  </style>
+</head>
+
+<body class="font-inter bg-gray-50 text-dark min-h-screen flex flex-col">
+  <!-- 导航栏 -->
+  <header class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center space-x-1">
+        <i class="fa fa-line-chart text-primary text-2xl"></i>
+        <h1 class="text-xl font-bold text-primary">GoFin</h1>
+      </div>
+
+      <nav class="hidden md:flex items-center space-x-6">
+        <a href="index.html" class="font-medium text-dark hover:text-primary transition-colors">首页</a>
+        <a href="favorites.html" class="font-medium text-dark hover:text-primary transition-colors">自选</a>
+        <a href="#" class="font-medium text-primary border-b-2 border-primary pb-1">投资组合</a>
+        <a href="#" class="font-medium text-dark hover:text-primary transition-colors">新闻</a>
+      </nav>
+
+      <div class="flex items-center space-x-4">
+        <div class="relative hidden md:block">
+          <input type="text" placeholder="搜索股票..."
+            class="pl-10 pr-4 py-2 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50 w-64">
+          <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+        </div>
+
+        <button class="md:hidden text-dark text-xl">
+          <i class="fa fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主内容区 -->
+  <main class="flex-grow container mx-auto px-4 py-6">
+    <!-- 市场概览 -->
+    <section class="mb-10">
+      <h2 class="text-2xl font-bold mb-4">市场概览</h2>
+
+      <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="flex items-center justify-between p-4 rounded-lg bg-blue-50">
+            <div>
+              <p class="text-gray-500 text-sm">道琼斯工业平均指数</p>
+              <p class="text-xl font-bold mt-1">33,876.78</p>
+              <p class="text-success text-sm flex items-center mt-1">
+                <i class="fa fa-caret-up mr-1"></i> 0.68%
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 实时股票数据 -->
+    <section>
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-semibold text-lg">实时股票数据</h3>
+        <div class="flex space-x-2">
+          <button id="refresh-btn" class="btn-secondary text-sm px-3 py-1 flex items-center">
+            <i class="fa fa-refresh mr-1"></i> 刷新
+          </button>
+          <select id="sort-select"
+            class="border border-gray-200 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+            <option value="ticker">按代码排序</option>
+            <option value="price">按价格排序</option>
+            <option value="changePercent">按涨跌幅排序</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full" id="market-trends-table">
+          <thead>
+            <tr class="border-b border-gray-200">
+              <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">代码</th>
+              <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">名称</th>
+              <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">价格</th>
+              <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">涨跌幅</th>
+              <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">成交量</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 数据将通过JavaScript动态生成 -->
+            <tr>
+              <td colspan="5" class="py-4 text-center text-gray-500">加载中...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="bg-white border-t border-gray-200 mt-12">
+    <div class="container mx-auto px-4 py-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div>
+          <div class="flex items-center space-x-1 mb-4">
+            <i class="fa fa-line-chart text-primary text-xl"></i>
+            <h3 class="text-lg font-bold text-primary">GoFin</h3>
+          </div>
+          <p class="text-gray-500 text-sm">专业的股票投资组合分析工具，帮助你做出更明智的投资决策。</p>
+        </div>
+
+        <div>
+          <h4 class="font-semibold mb-4">产品</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="#" class="text-gray-500 hover:text-primary">股票分析</a></li>
+            <li><a href="#" class="text-gray-500 hover:text-primary">投资组合</a></li>
+            <li><a href="#" class="text-gray-500 hover:text-primary">市场概览</a></li>
+            <li><a href="#" class="text-gray-500 hover:text-primary">财经日历</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-semibold mb-4">支持</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="#" class="text-gray-500 hover:text-primary">帮助中心</a></li>
+            <li><a href="#" class="text-gray-500 hover:text-primary">使用教程</a></li>
+            <li><a href="#" class="text-gray-500 hover:text-primary">API文档</a></li>
+            <li><a href="#" class="text-gray-500 hover:text-primary">联系我们</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-semibold mb-4">关注我们</h4>
+          <div class="flex space-x-4 mb-4">
+            <a href="#"
+              class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-primary hover:text-white transition-colors">
+              <i class="fa fa-weibo"></i>
+            </a>
+            <a href="#"
+              class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-primary hover:text-white transition-colors">
+              <i class="fa fa-wechat"></i>
+            </a>
+            <a href="#"
+              class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-primary hover:text-white transition-colors">
+              <i class="fa fa-twitter"></i>
+            </a>
+          </div>
+          <p class="text-gray-500 text-sm">订阅我们的财经资讯</p>
+          <div class="mt-2 flex">
+            <input type="email" placeholder="您的邮箱地址"
+              class="flex-grow px-3 py-2 rounded-l-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50">
+            <button class="bg-primary text-white px-4 py-2 rounded-r-lg">订阅</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-200 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+        <p class="text-gray-500 text-sm">© 2025 GoFin. 保留所有权利。</p>
+        <div class="flex space-x-4 mt-4 md:mt-0">
+          <a href="#" class="text-gray-500 hover:text-primary text-sm">隐私政策</a>
+          <a href="#" class="text-gray-500 hover:text-primary text-sm">服务条款</a>
+          <a href="#" class="text-gray-500 hover:text-primary text-sm">免责声明</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // 这里可以引入后端 JS 代码，确保不修改后端代码
+    // 例如：
+    // const backendScript = document.createElement('script');
+    // backendScript.src = 'path/to/backend.js';
+    // document.body.appendChild(backendScript);
+
+    // 股票卡片模板
+    function createStockCard(stock) {
+      const changeClass = stock.change_percent >= 0 ? 'text-success' : 'text-danger';
+      const changeIcon = stock.change_percent >= 0 ? 'fa-caret-up' : 'fa-caret-down';
+
+      return `
+        <div class="bg-white rounded-xl shadow-sm p-4 card-hover">
+          <div class="flex justify-between items-start mb-3">
+            <div>
+              <h3 class="font-bold text-lg">${stock.symbol}</h3>
+              <p class="text-gray-500 text-sm">${stock.name}</p>
+            </div>
+            <button class="favorite-btn ${stock.is_favorite ? 'text-primary' : 'text-gray-300'}" data-symbol="${stock.symbol}">
+              <i class="fa fa-star"></i>
+            </button>
+          </div>
+          
+          <div class="flex justify-between items-end">
+            <div>
+              <p class="text-2xl font-bold">¥${stock.price.toFixed(2)}</p>
+              <p class="${changeClass} flex items-center text-sm mt-1">
+                <i class="fa ${changeIcon} mr-1"></i> ${Math.abs(stock.change_percent).toFixed(2)}%
+              </p>
+            </div>
+            <button class="btn-secondary text-sm px-3 py-1">
+              查看详情
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // 涨幅榜/跌幅榜行模板
+    function createRankRow(stock) {
+      const changeClass = stock.change_percent >= 0 ? 'text-success' : 'text-danger';
+      const changeIcon = stock.change_percent >= 0 ? 'fa-caret-up' : 'fa-caret-down';
+      const changeValue = stock.change_percent >= 0 ? stock.change_percent : -stock.change_percent;
+
+      return `
+        <tr class="border-b border-gray-100 hover:bg-gray-50">
+          <td class="py-3 text-sm font-medium">${stock.symbol}</td>
+          <td class="py-3 text-sm">${stock.name}</td>
+          <td class="py-3 text-sm">¥${stock.price.toFixed(2)}</td>
+          <td class="py-3 text-sm ${changeClass}">
+            <i class="fa ${changeIcon} mr-1"></i> ${changeValue.toFixed(2)}%
+          </td>
+        </tr>
+      `;
+    }
+
+    // 初始化迷你图表
+    function initMiniCharts() {
+      // 道琼斯工业平均指数
+      const dowJonesCtx = document.getElementById('dowJonesChart').getContext('2d');
+      new Chart(dowJonesCtx, {
+        type: 'line',
+        data: {
+          labels: Array(10).fill(''),
+          datasets: [{
+            data: [33500, 33600, 33400, 33300, 33200, 33400, 33500, 33600, 33700, 33800],
+            borderColor: '#0FC6C2',
+            backgroundColor: 'rgba(15, 198, 194, 0.1)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { x: { display: false }, y: { display: false } },
+          elements: { point: { radius: 0 } }
+        }
+      });
+
+      // 纳斯达克综合指数
+      const nasdaqCtx = document.getElementById('nasdaqChart').getContext('2d');
+      new Chart(nasdaqCtx, {
+        type: 'line',
+        data: {
+          labels: Array(10).fill(''),
+          datasets: [{
+            data: [13200, 13100, 13300, 13250, 13400, 13350, 13450, 13500, 13550, 13590],
+            borderColor: '#0FC6C2',
+            backgroundColor: 'rgba(15, 198, 194, 0.1)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { x: { display: false }, y: { display: false } },
+          elements: { point: { radius: 0 } }
+        }
+      });
+    }
+
+    // 格式化数字（添加千位分隔符）
+    function formatNumber(num) {
+      if (num === 'N/A') return 'N/A';
+      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    // 页面加载完成后执行
+    document.addEventListener('DOMContentLoaded', () => {
+      // 初始化迷你图表（保留原功能）
+      initMiniCharts();
+      // 加载股票数据（保留原功能）
+      // loadStocks();
+      // 新加载市场趋势数据
+      // loadMarketTrends();
+
+      // 添加刷新按钮事件
+      document.getElementById('refresh-btn').addEventListener('click', () => {
+        // loadMarketTrends(document.getElementById('sort-select').value);
+      });
+
+      // 添加排序选择事件
+      document.getElementById('sort-select').addEventListener('change', (e) => {
+        // loadMarketTrends(e.target.value);
+      });
+    });
+
+    // 加载股票数据
+    async function loadStocks() {
+      try {
+        const response = await fetch('/api/stocks/hot');
+        const stocks = await response.json();
+
+        const stockContainer = document.querySelector('.grid');
+        stockContainer.innerHTML = '';
+
+        stocks.forEach(stock => {
+          stockContainer.innerHTML += createStockCard(stock);
+        });
+
+        // 添加收藏按钮事件
+        document.querySelectorAll('.favorite-btn').forEach(btn => {
+          btn.addEventListener('click', async function () {
+            const symbol = this.dataset.symbol;
+            const isFavorite = this.classList.contains('text-primary');
+
+            try {
+              await fetch(`/api/stocks/${symbol}/favorite`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ isFavorite: !isFavorite })
+              });
+
+              // 更新按钮状态
+              this.classList.toggle('text-primary', !isFavorite);
+              this.classList.toggle('text-gray-300', isFavorite);
+            } catch (error) {
+              console.error('Error toggling favorite:', error);
+              alert('操作失败，请稍后重试');
+            }
+          });
+        });
+
+        // 填充涨幅榜和跌幅榜
+        const topGainers = [...stocks].sort((a, b) => b.change_percent - a.change_percent).slice(0, 5);
+        const topLosers = [...stocks].sort((a, b) => a.change_percent - b.change_percent).slice(0, 5);
+
+        const gainersTable = document.querySelector('table:nth-of-type(1) tbody');
+        const losersTable = document.querySelector('table:nth-of-type(2) tbody');
+
+        gainersTable.innerHTML = '';
+        losersTable.innerHTML = '';
+
+        topGainers.forEach(stock => {
+          gainersTable.innerHTML += createRankRow(stock);
+        });
+
+        topLosers.forEach(stock => {
+          losersTable.innerHTML += createRankRow(stock);
+        });
+      } catch (error) {
+        console.error('Error loading stocks:', error);
+        // alert('加载股票数据失败，请稍后重试');
+      }
+    }
+  </script>
 </body>
+
 </html>
