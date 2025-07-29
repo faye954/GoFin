@@ -6,5 +6,25 @@
     "node-cache": "^5.1.2",
     "p-limit": "^2.3.0",
     "yahoo-finance2": "^2.13.3"
-  }
+  },
+  "name": "gofin",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/faye954/GoFin.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/faye954/GoFin/issues"
+  },
+  "homepage": "https://github.com/faye954/GoFin#readme"
 }
