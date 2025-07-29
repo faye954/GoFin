@@ -149,65 +149,46 @@
     </section>
     
     <!-- 趋势板块 -->
-    <section>
-      <h2 class="text-2xl font-bold mb-4">市场趋势</h2>
-      
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white rounded-xl shadow-sm p-6">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="font-semibold text-lg">涨幅榜</h3>
-            <select class="border border-gray-200 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-              <option>今日</option>
-              <option>本周</option>
-              <option>本月</option>
-            </select>
-          </div>
-          
-          <div class="overflow-x-auto">
-            <table class="min-w-full">
-              <thead>
-                <tr class="border-b border-gray-200">
-                  <th class="py-3 text-left text-sm font-medium text-gray-500">股票代码</th>
-                  <th class="py-3 text-left text-sm font-medium text-gray-500">名称</th>
-                  <th class="py-3 text-left text-sm font-medium text-gray-500">价格</th>
-                  <th class="py-3 text-left text-sm font-medium text-gray-500">涨跌幅</th>
-                </tr>
-              </thead>
-              <tbody>
-                <!-- 涨幅榜数据会通过JavaScript动态生成 -->
-              </tbody>
-            </table>
-          </div>
-        </div>
+    <!-- 市场趋势表格 -->
+      <section class="mt-10">
+        <h2 class="text-2xl font-bold mb-4">市场趋势</h2>
         
         <div class="bg-white rounded-xl shadow-sm p-6">
           <div class="flex justify-between items-center mb-4">
-            <h3 class="font-semibold text-lg">跌幅榜</h3>
-            <select class="border border-gray-200 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-              <option>今日</option>
-              <option>本周</option>
-              <option>本月</option>
-            </select>
+            <h3 class="font-semibold text-lg">实时股票数据</h3>
+            <div class="flex space-x-2">
+              <button id="refresh-btn" class="btn-secondary text-sm px-3 py-1 flex items-center">
+                <i class="fa fa-refresh mr-1"></i> 刷新
+              </button>
+              <select id="sort-select" class="border border-gray-200 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                <option value="ticker">按代码排序</option>
+                <option value="price">按价格排序</option>
+                <option value="changePercent">按涨跌幅排序</option>
+              </select>
+            </div>
           </div>
           
           <div class="overflow-x-auto">
-            <table class="min-w-full">
+            <table class="min-w-full" id="market-trends-table">
               <thead>
                 <tr class="border-b border-gray-200">
-                  <th class="py-3 text-left text-sm font-medium text-gray-500">股票代码</th>
-                  <th class="py-3 text-left text-sm font-medium text-gray-500">名称</th>
-                  <th class="py-3 text-left text-sm font-medium text-gray-500">价格</th>
-                  <th class="py-3 text-left text-sm font-medium text-gray-500">涨跌幅</th>
+                  <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">代码</th>
+                  <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">名称</th>
+                  <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">价格</th>
+                  <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">涨跌幅</th>
+                  <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">成交量</th>
                 </tr>
               </thead>
               <tbody>
-                <!-- 跌幅榜数据会通过JavaScript动态生成 -->
+                <!-- 数据将通过JavaScript动态生成 -->
+                <tr>
+                  <td colspan="5" class="py-4 text-center text-gray-500">加载中...</td>
+                </tr>
               </tbody>
             </table>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
   </main>
 
   <!-- 页脚 -->
@@ -400,6 +381,85 @@
       });
     }
     
+    // 加载市场趋势数据
+    async function loadMarketTrends(sortBy = 'ticker') {
+      try {
+        // 修改请求地址
+        const response = await fetch('http://localhost:3001/api/quote1/all');
+        const stocks = await response.json();
+        
+        // 排序数据
+        const sortedStocks = [...stocks].sort((a, b) => {
+          if (sortBy === 'price') return b.price - a.price;
+          if (sortBy === 'changePercent') return b.changePercent - a.changePercent;
+          return a.ticker.localeCompare(b.ticker);
+        });
+        
+        const tableBody = document.querySelector('#market-trends-table tbody');
+        tableBody.innerHTML = '';
+        
+        if (sortedStocks.length === 0) {
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="5" class="py-4 text-center text-gray-500">暂无数据</td>
+            </tr>
+          `;
+          return;
+        }
+        
+        sortedStocks.forEach(stock => {
+          const changeClass = stock.changePercent >= 0 ? 'text-success' : 'text-danger';
+          const changeIcon = stock.changePercent >= 0 ? 'fa-caret-up' : 'fa-caret-down';
+          
+          tableBody.innerHTML += `
+            <tr class="border-b border-gray-100 hover:bg-gray-50">
+              <td class="py-3 px-4 text-sm font-medium">${stock.ticker}</td>
+              <td class="py-3 px-4 text-sm">${stock.shortName || stock.longName}</td>
+              <td class="py-3 px-4 text-sm">¥${stock.price.toFixed(2)}</td>
+              <td class="py-3 px-4 text-sm ${changeClass}">
+                <i class="fa ${changeIcon} mr-1"></i> ${Math.abs(stock.changePercent).toFixed(2)}%
+              </td>
+              <td class="py-3 px-4 text-sm">${formatNumber(stock.volume)}</td>
+            </tr>
+          `;
+        });
+      } catch (error) {
+        console.error('Error loading market trends:', error);
+        const tableBody = document.querySelector('#market-trends-table tbody');
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="py-4 text-center text-danger">加载数据失败: ${error.message}</td>
+          </tr>
+        `;
+      }
+    }
+
+    // 格式化数字（添加千位分隔符）
+    function formatNumber(num) {
+      if (num === 'N/A') return 'N/A';
+      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    // 页面加载完成后执行
+    document.addEventListener('DOMContentLoaded', () => {
+      // 初始化迷你图表（保留原功能）
+      initMiniCharts();
+      // 加载股票数据（保留原功能）
+      loadStocks();
+      // 新加载市场趋势数据
+      loadMarketTrends();
+      
+      // 添加刷新按钮事件
+      document.getElementById('refresh-btn').addEventListener('click', () => {
+        loadMarketTrends(document.getElementById('sort-select').value);
+      });
+      
+      // 添加排序选择事件
+      document.getElementById('sort-select').addEventListener('change', (e) => {
+        loadMarketTrends(e.target.value);
+      });
+    });
+    
     // 加载股票数据
     async function loadStocks() {
       try {
@@ -466,4 +526,4 @@
     });
   </script>
 </body>
-</html>  
+</html>

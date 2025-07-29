@@ -3,6 +3,8 @@
     "axios": "^1.11.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
+    "node-cache": "^5.1.2",
+    "p-limit": "^2.3.0",
     "yahoo-finance2": "^2.13.3"
   }
 }
