@@ -67,8 +67,9 @@
         <td>${data.ticker}</td>
         <td>$${data.price.toFixed(2)}</td>
         <td class="${data.changePercent >= 0 ? 'green' : 'red'}">
-          ${(data.changePercent * 100).toFixed(2)}%
+          ${data.changePercent >= 0 ? '+' : ''}${data.changePercent.toFixed(2)}%
         </td>`;
+
       tbody.appendChild(row);
 
       priceList.push(data.price);

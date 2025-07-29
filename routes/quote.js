@@ -4,7 +4,6 @@ const router = express.Router();
 
 const popularTickers = ['AAPL', 'TSLA', 'MSFT', 'AMZN', 'NVDA', 'GOOG', 'META', 'NFLX', 'BRK-B', 'JPM'];
 
-// ¹¤¾ßº¯Êý£º±£ÁôÁ½Î»Ð¡Êý
 const format2 = num => parseFloat(num.toFixed(2));
 
 // GET /api/quote/market
@@ -13,21 +12,25 @@ router.get('/market', async (req, res) => {
     const etfTickers = ['DIA', 'QQQ', 'SPY'];
 
     const results = await Promise.all(etfTickers.map(async ticker => {
-      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=7d&interval=1d`;
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=5d&interval=1d`;
       const response = await axios.get(url);
       const data = response.data.chart.result[0];
 
       const price = data.meta.regularMarketPrice;
+      console.log("price", price);
+
       const prev = data.meta.chartPreviousClose;
-      const change = price - prev;
-      const changePercent = (change / prev) * 100;
+      console.log("prev", prev);
+      const changeRaw = price - prev;
+      console.log("changeRaw", changeRaw);
+      const changePercentRaw = (changeRaw / prev) * 100;
       const closes = data.indicators.quote[0].close.filter(p => p != null);
 
       return {
         symbol: ticker,
         price: format2(price),
-        change: format2(change),
-        changePercent: format2(changePercent),
+        change: format2(changeRaw),             // âœ… ä¿ç•™æ­£è´Ÿå·
+        changePercent: format2(changePercentRaw),
         trend: closes.map(format2)
       };
     }));
@@ -49,15 +52,15 @@ router.get('/all', async (req, res) => {
 
       const price = data.meta.regularMarketPrice;
       const prev = data.meta.chartPreviousClose;
-      const change = price - prev;
-      const changePercent = (change / prev) * 100;
+      const changeRaw = price - prev;
+      const changePercentRaw = (changeRaw / prev) * 100;
       const volume = data.indicators.quote[0].volume.pop();
 
       return {
         ticker,
         price: format2(price),
-        change: format2(change),
-        changePercent: format2(changePercent),
+        change: format2(changeRaw),
+        changePercent: format2(changePercentRaw),
         volume
       };
     }));
@@ -79,15 +82,15 @@ router.get('/:ticker', async (req, res) => {
 
     const price = data.meta.regularMarketPrice;
     const prev = data.meta.chartPreviousClose;
-    const change = price - prev;
-    const changePercent = (change / prev) * 100;
+    const changeRaw = price - prev;
+    const changePercentRaw = (changeRaw / prev) * 100;
     const volume = data.indicators.quote[0].volume.pop();
 
     res.json({
       ticker,
       price: format2(price),
-      change: format2(change),
-      changePercent: format2(changePercent),
+      change: format2(changeRaw),
+      changePercent: format2(changePercentRaw),
       volume
     });
   } catch (err) {
@@ -98,3 +101,5 @@ router.get('/:ticker', async (req, res) => {
 
 module.exports = router;
 
+
+console.log(format2(-3.147));
