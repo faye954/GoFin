@@ -21,7 +21,7 @@ function getNewYorkTime() {
 }
 
 // GET /api/getMarketOverview (市场概览)
-router.get('/getMarketOverview', async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const etfTickers = ['DIA', 'QQQ', 'SPY'];
     const updateTime = getNewYorkTime(); // 统一使用纽约时间

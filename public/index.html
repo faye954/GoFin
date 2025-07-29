@@ -371,7 +371,7 @@
     // 加载市场概览数据
     async function loadMarketOverview() {
       try {
-        const response = await fetch('https://m1.apifoxmock.com/m1/6852975-6567322-default/api/getMarketOverview');
+        const response = await fetch('http://localhost:3001/api/getMarketOverview');
         const result = await response.json();
 
         if (result.code === 200 && result.data && result.data.length) {
@@ -456,13 +456,13 @@
           `;
         });
       } catch (error) {
-        console.error('Error loading market trends:', error);
-        const tableBody = document.querySelector('#market-trends-table tbody');
-        tableBody.innerHTML = `
-          <tr>
-            <td colspan="5" class="py-4 text-center text-danger">加载数据失败: ${error.message}</td>
-          </tr>
-        `;
+        // console.error('Error loading market trends:', error);
+        // const tableBody = document.querySelector('#market-trends-table tbody');
+        // tableBody.innerHTML = `
+        //   <tr>
+        //     <td colspan="5" class="py-4 text-center text-danger">加载数据失败: ${error.message}</td>
+        //   </tr>
+        // `;
       }
     }
 
