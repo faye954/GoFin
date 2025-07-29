@@ -2,14 +2,14 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const quoteRoutes = require('./routes/quote1');
-const getMarketOverviewRoutes = require('./routes/quote');
+// 引入合并后的路由
+const combinedRoutes = require('./routes/quote-combined');
 
 app.use(cors());
 app.use(express.json());
 
-app.use('/api/quote1', quoteRoutes);
-app.use('/api/getMarketOverview', getMarketOverviewRoutes);
+// 使用合并后的路由
+app.use(combinedRoutes);
 
 const PORT = 3001;
 app.listen(PORT, () => {
