@@ -23,23 +23,24 @@
     <button class="favorites-btn">❤️ 自选</button>
     
     <div class="market-section">
-      <h4>美股市场</h4>
-      <div class="market-index up">
-        <div class="index-name">道琼斯</div>
-        <div class="index-value">44901.92</div>
-        <div class="index-change">+208.01 +0.47%</div>
+        <h4>美股市场</h4>
+        <div class="market-index up">
+          <div class="index-name">道琼斯ETF（DIA）</div>
+          <div class="index-value" id="dji-value">--</div>
+          <div class="index-change" id="dji-change">--</div>
+        </div>
+        <div class="market-index up">
+          <div class="index-name">纳斯达克ETF（QQQ）</div>
+          <div class="index-value" id="ixic-value">--</div>
+          <div class="index-change" id="ixic-change">--</div>
+        </div>
+        <div class="market-index up">
+          <div class="index-name">标普500ETF（SPY）</div>
+          <div class="index-value" id="gspc-value">--</div>
+          <div class="index-change" id="gspc-change">--</div>
+        </div>
       </div>
-      <div class="market-index up">
-        <div class="index-name">纳斯达克</div>
-        <div class="index-value">21108.32</div>
-        <div class="index-change">+50.36 +0.24%</div>
-      </div>
-      <div class="market-index up">
-        <div class="index-name">标普500</div>
-        <div class="index-value">6388.64</div>
-        <div class="index-change">+25.29 +0.40%</div>
-      </div>
-    </div>
+      
     
     <div class="stock-categories">
       <h4>全部股票</h4>
@@ -107,8 +108,45 @@
       }
     }
   
-    document.addEventListener('DOMContentLoaded', renderStockTable);
+    async function renderIndices() {
+  try {
+    const res = await fetch('/api/quote/market');
+    const data = await res.json();
+
+    data.forEach(index => {
+      const symbol = index.symbol.toUpperCase();
+      let id = null;
+
+      if (symbol === 'DIA') id = 'dji';
+      else if (symbol === 'QQQ') id = 'ixic';
+      else if (symbol === 'SPY') id = 'gspc';
+
+      if (id) {
+        const valueEl = document.getElementById(`${id}-value`);
+        const changeEl = document.getElementById(`${id}-change`);
+        const change = index.change.toFixed(2);
+        const pct = index.changePercent.toFixed(2);
+        const isUp = index.change >= 0;
+
+        valueEl.textContent = index.price.toFixed(2);
+        changeEl.textContent = `${isUp ? '+' : ''}${change} ${isUp ? '+' : ''}${pct}%`;
+        valueEl.parentElement.classList.toggle('up', isUp);
+        valueEl.parentElement.classList.toggle('down', !isUp);
+      }
+    });
+  } catch (err) {
+    console.error('Failed to load indices:', err);
+  }
+}
+
+
+  
+    document.addEventListener('DOMContentLoaded', () => {
+      renderStockTable();
+      renderIndices();
+    });
   </script>
+  
   
 </body>
 </html>
