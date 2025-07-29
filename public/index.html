@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Stock Portfolio Analyzer</title>
+  <title>GoFin</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
@@ -61,14 +61,18 @@
     <div class="container mx-auto px-4 py-3 flex justify-between items-center">
       <div class="flex items-center space-x-1">
         <i class="fa fa-line-chart text-primary text-2xl"></i>
-        <h1 class="text-xl font-bold text-primary">StockPulse</h1>
+        <h1 class="text-xl font-bold text-primary">GoFin</h1>
       </div>
       
-      <nav class="hidden md:flex items-center space-x-6">
+      <!-- <nav class="hidden md:flex items-center space-x-6">
         <a href="index.html" class="font-medium text-dark hover:text-primary transition-colors">首页</a>
         <a href="favorites.html" class="font-medium text-primary border-b-2 border-primary pb-1">自选</a>
-        <!-- <a href="#" class="font-medium text-dark hover:text-primary transition-colors">市场</a>
-        <a href="#" class="font-medium text-dark hover:text-primary transition-colors">新闻</a> -->
+        <a href="#" class="font-medium text-dark hover:text-primary transition-colors">市场</a>
+        <a href="#" class="font-medium text-dark hover:text-primary transition-colors">新闻</a>
+      </nav> -->
+      <nav class="hidden md:flex items-center space-x-6">
+        <a href="index.html" class="font-medium text-primary border-b-2 border-primary pb-1">首页</a>
+        <a href="favorites.html" class="font-medium text-dark hover:text-primary transition-colors">自选</a>
       </nav>
       
       <div class="flex items-center space-x-4">
@@ -85,21 +89,7 @@
   </header>
 
   <!-- 主内容区 -->
-  <main class="flex-grow container mx-auto px-4 py-6">
-    <!-- 热门股票 -->
-    <section class="mb-10">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-bold">热门股票</h2>
-        <a href="#" class="text-primary hover:underline flex items-center">
-          查看全部 <i class="fa fa-angle-right ml-1"></i>
-        </a>
-      </div>
-      
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        <!-- 股票卡片会通过JavaScript动态生成 -->
-      </div>
-    </section>
-    
+  <main class="flex-grow container mx-auto px-4 py-6">    
     <!-- 市场概览 -->
     <section class="mb-10">
       <h2 class="text-2xl font-bold mb-4">市场概览</h2>
@@ -198,7 +188,7 @@
         <div>
           <div class="flex items-center space-x-1 mb-4">
             <i class="fa fa-line-chart text-primary text-xl"></i>
-            <h3 class="text-lg font-bold text-primary">StockPulse</h3>
+            <h3 class="text-lg font-bold text-primary">GoFin</h3>
           </div>
           <p class="text-gray-500 text-sm">专业的股票投资组合分析工具，帮助你做出更明智的投资决策。</p>
         </div>
@@ -245,7 +235,7 @@
       </div>
       
       <div class="border-t border-gray-200 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-        <p class="text-gray-500 text-sm">© 2025 StockPulse. 保留所有权利。</p>
+        <p class="text-gray-500 text-sm">© 2025 GoFin. 保留所有权利。</p>
         <div class="flex space-x-4 mt-4 md:mt-0">
           <a href="#" class="text-gray-500 hover:text-primary text-sm">隐私政策</a>
           <a href="#" class="text-gray-500 hover:text-primary text-sm">服务条款</a>
@@ -515,7 +505,7 @@
         });
       } catch (error) {
         console.error('Error loading stocks:', error);
-        alert('加载股票数据失败，请稍后重试');
+        // alert('加载股票数据失败，请稍后重试');
       }
     }
     
