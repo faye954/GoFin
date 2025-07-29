@@ -2,12 +2,12 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const quoteRoutes = require('./routes/quote1');
+const quoteRoutes = require('./routes/quote');
 
 app.use(cors());
 app.use(express.json());
 
-app.use('/api/quote1', quoteRoutes);
+app.use('/api/quote', quoteRoutes);
 
 const PORT = 3001;
 app.listen(PORT, () => {
