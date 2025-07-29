@@ -1,0 +1,20 @@
+[
+  
+  "AAPL", "MSFT", "GOOG", "GOOGL", "AMZN", "META", "NVDA", "TSLA", "ADBE", "CRM",
+  "ORCL", "IBM", "INTC", "AMD", "CSCO", "QCOM", "AVGO", "TXN", "AMAT", "LRCX",
+  
+  "JPM", "BAC", "WFC", "C", "GS", "MS", "BRK-B", "V", "MA", "PYPL",
+  "AXP", "BK", "SCHW", "BLK", "GLD", "SLV", "SPGI", "MCO", "ICE", "CME",
+  
+  "WMT", "COST", "TGT", "HD", "LOW", "MCD", "SBUX", "YUM", "CMG", "KO",
+  "PEP", "MNST", "CL", "PG", "UL", "KMB", "EL", "WBA", "TGT", "COST",
+  
+  "JNJ", "PFE", "MRNA", "BNTX", "ABBV", "LLY", "MRK", "UNH", "CVS", "AMGN",
+  "GILD", "REGN", "VRTX", "BIIB", "ISRG", "DXCM", "ALGN", "MCK", "HSIC", "VRTX",
+  
+  "XOM", "CVX", "COP", "SLB", "EOG", "OXY", "HAL", "PSX", "KMI", "ENB",
+  "ET", "SHEL", "BP", "LNG", "FANG", "DVN", "MPC", "VLO", "HES", "APA",
+  
+  "BA", "CAT", "MMM", "GE", "UNP", "CSX", "NSC", "LMT", "RTX", "GD",
+  "HON", "DE", "ETN", "EMR", "ITW", "ROK", "CMI", "DOV", "IR", "PCAR"
+]
