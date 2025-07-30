@@ -8,7 +8,7 @@ const RANGE = '1mo';
 const INTERVAL = '1d';
 const RISK_FREE_RATE_DAILY = 0.0001;
 
-// À­È¡ÀúÊ·ÊÕÅÌ¼Û
+// è·å–å•ä¸ªè‚¡ç¥¨æ•°æ®
 async function fetchStock(ticker) {
   const url = `${BASE_URL}${ticker}?range=${RANGE}&interval=${INTERVAL}`;
   try {
@@ -24,7 +24,7 @@ async function fetchStock(ticker) {
   }
 }
 
-// ¶ÔÆëËùÓĞ¹ÉÆ±µÄÈÕÆÚ
+// å¯¹é½å¤šä¸ªè‚¡ç¥¨æ•°æ®
 function align(stockList) {
   const commonDates = stockList.map(s => s.dates).reduce((a, b) => a.filter(d => b.includes(d)));
   const data = {};
@@ -37,7 +37,7 @@ function align(stockList) {
   return { dates: commonDates, data };
 }
 
-// ×éºÏ¾»Öµ
+// è®¡ç®—æŠ•èµ„ç»„åˆä»·å€¼
 function calcValue(data, weights, dates) {
   const tickers = Object.keys(weights);
   return dates.map((_, i) =>
@@ -58,7 +58,7 @@ function computeDailyReturns(values) {
   }
   
 
-// ¼¨Ğ§Ö¸±ê
+// è®¡ç®—æŠ•èµ„ç»„åˆæŒ‡æ ‡
 function calcMetrics(values) {
     if (!Array.isArray(values) || values.length < 2 || values.includes(null)) {
       return {
@@ -92,7 +92,7 @@ function calcMetrics(values) {
   }
   
 
-// Â·ÓÉ GET /api/portfolio/compare
+// GET /api/portfolio/compare
 router.get('/api/portfolio/compare', async (req, res) => {
   try {
     const tickers = JSON.parse(await fs.readFile('./tickers.json', 'utf8'));
