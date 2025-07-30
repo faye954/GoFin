@@ -13,7 +13,7 @@ const limit = pLimit(5); // 限制并发请求数为5
 const tickersPath = path.join(__dirname, '../tickers.json');
 const allTickers = JSON.parse(fs.readFileSync(tickersPath, 'utf8'));
 
-// 保留原有热门股票（兼容旧接口）
+// 保留原有热门股票（仅用于特定接口）
 const popularTickers = ['AAPL', 'TSLA', 'MSFT', 'AMZN', 'NVDA', 'GOOG', 'META', 'NFLX', 'BRK-B', 'JPM'];
 
 // 格式化数字为两位小数
@@ -33,7 +33,7 @@ function getNewYorkTime() {
   return now.toISOString().replace('T', ' ').substring(0, 19);
 }
 
-// ========== 原有带缓存的详细股票数据获取（供 /api/quote1/all 使用） ==========
+// ========== 原有带缓存的详细股票数据获取 ==========
 async function fetchStockData(ticker) {
   const cacheKey = `stock:${ticker}`;
   const cachedData = cache.get(cacheKey);
@@ -88,7 +88,7 @@ async function fetchStockData(ticker) {
   }
 }
 
-// ========== 新的简单数据获取（供新接口使用） ==========
+// ========== 新的简单数据获取 ==========
 const fetchStockDataSimple = async (ticker, isETF = false) => {
   try {
     const url = isETF
@@ -123,19 +123,19 @@ const fetchStockDataSimple = async (ticker, isETF = false) => {
         volume
       };
     }
-    } catch (err) {
-      console.error(`获取 ${ticker} 数据失败:`, err.message);
-      return { ticker, error: '数据获取失败' };
-    }
-  };
+  } catch (err) {
+    console.error(`获取 ${ticker} 数据失败:`, err.message);
+    return { ticker, error: '数据获取失败' };
+  }
+};
 
-// ========== 原有接口 ==========
+// ========== 接口实现 ==========
 
 // GET /api/getMarketOverview (市场概览)
 router.get('/api/getMarketOverview', async (req, res) => {
   try {
     const etfTickers = ['DIA', 'QQQ', 'SPY'];
-    const updateTime = getNewYorkTime(); // 统一使用纽约时间
+    const updateTime = getNewYorkTime();
 
     const results = await Promise.all(etfTickers.map(async ticker => {
       const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=5d&interval=1d`;
@@ -177,9 +177,10 @@ router.get('/api/getMarketOverview', async (req, res) => {
 // GET /api/quote1/all (所有股票数据 - 详细版)
 router.get('/api/quote1/all', async (req, res) => {
   try {
+    // 默认使用tickers.json中的全部股票，支持通过query参数覆盖
     const tickers = req.query.tickers
       ? req.query.tickers.split(',')
-      : popularTickers;
+      : allTickers;
 
     const results = await Promise.all(
       tickers.map(ticker => limit(() => fetchStockData(ticker)))
@@ -197,7 +198,8 @@ router.get('/api/quote1/all', async (req, res) => {
 // GET /api/quote/all (所有股票数据 - 简化版)
 router.get('/api/quote/all', async (req, res) => {
   try {
-    const results = await Promise.all(popularTickers.map(async ticker => {
+    // 使用tickers.json中的全部股票
+    const results = await Promise.all(allTickers.map(async ticker => {
       const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}`;
       const response = await axios.get(url);
       const data = response.data.chart.result[0];
@@ -212,8 +214,8 @@ router.get('/api/quote/all', async (req, res) => {
 
       return {
         ticker: ticker,
-        shortName: meta.symbol, // 使用symbol作为简称
-        longName: meta.instrumentType, // 使用类型作为全名
+        shortName: meta.symbol,
+        longName: meta.instrumentType,
         price: format2(price),
         change: format2(changeRaw),
         changePercent: format2(changePercentRaw),
@@ -236,7 +238,7 @@ router.get('/api/quote/all', async (req, res) => {
   }
 });
 
-// GET /api/quote/:ticker (单只股票数据 - 简化版)
+// GET /api/quote/:ticker (单只股票数据)
 router.get('/api/quote/:ticker', async (req, res) => {
   const { ticker } = req.params;
   try {
