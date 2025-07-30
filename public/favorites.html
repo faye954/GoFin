@@ -56,10 +56,52 @@
         height: 36px;
       }
       .proportion-input {
-        width: 70px; /* 增大比例输入框宽度 */
+        width: 80px;
       }
       .font-auto {
         font-size: clamp(0.75rem, 2vw, 0.875rem);
+      }
+      .scroll-indicator {
+        width: 4px;
+        background-color: rgba(220, 220, 220, 0.5); /* 浅色滚动指示器背景 */
+        border-radius: 2px;
+        transition: height 0.2s ease;
+      }
+      .scroll-container {
+        position: relative;
+      }
+      .scroll-handle {
+        width: 4px;
+        background-color: #bbbbbb; /* 浅色滚动指示器滑块 */
+        border-radius: 2px;
+        cursor: pointer;
+        transition: height 0.2s ease, transform 0.1s ease;
+      }
+      .scroll-handle:hover {
+        background-color: #999999; /* 鼠标悬停时略深 */
+      }
+      .sticky-header th {
+        position: sticky;
+        top: 0;
+        background-color: white;
+        z-index: 10;
+      }
+      
+      /* 统一浅色滚动条样式 */
+      .light-scrollbar::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      .light-scrollbar::-webkit-scrollbar-track {
+        background: #f1f1f1; /* 浅色轨道 */
+        border-radius: 3px;
+      }
+      .light-scrollbar::-webkit-scrollbar-thumb {
+        background: #c1d7da; /* 浅色滑块 */
+        border-radius: 3px;
+      }
+      .light-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #b1b1b1; /*  hover时略深 */
       }
     }
   </style>
@@ -95,7 +137,7 @@
   <!-- 主内容区 -->
   <main class="flex-grow container mx-auto px-4 py-6">
     <div class="flex flex-col md:flex-row gap-6">
-      <!-- 左侧：自选股列表 -->
+      <!-- 左侧：自选股列表 - 垂直滑动（浅色滚动条） -->
       <div class="md:w-2/3 bg-white rounded-xl shadow-sm p-6">
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-2xl font-bold">我的自选</h2>
@@ -104,26 +146,36 @@
           </button>
         </div>
         
-        <div class="overflow-x-auto">
-          <table class="min-w-full">
-            <thead>
-              <tr class="border-b border-gray-200">
-                <th class="py-3 text-left text-sm font-medium text-gray-500">
-                  <div class="flex items-center">
-                    <input type="checkbox" id="selectAll" class="mr-2">
-                    股票代码
-                  </div>
-                </th>
-                <th class="py-3 text-left text-sm font-medium text-gray-500">名称</th>
-                <th class="py-3 text-left text-sm font-medium text-gray-500">价格</th>
-                <th class="py-3 text-left text-sm font-medium text-gray-500">涨跌幅</th>
-                <th class="py-3 text-left text-sm font-medium text-gray-500">操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- 自选股数据会通过JavaScript动态生成 -->
-            </tbody>
-          </table>
+        <div class="scroll-container">
+          <!-- 自选股表格容器 - 应用浅色滚动条 -->
+          <div id="favoritesContainer" class="overflow-y-auto light-scrollbar max-h-[500px] pr-2">
+            <table class="min-w-full w-full">
+              <thead class="sticky-header border-b border-gray-200">
+                <tr>
+                  <th class="py-3 text-left text-sm font-medium text-gray-500 px-2">
+                    <div class="flex items-center">
+                      <input type="checkbox" id="selectAll" class="mr-2">
+                      股票代码
+                    </div>
+                  </th>
+                  <th class="py-3 text-left text-sm font-medium text-gray-500 px-2">名称</th>
+                  <th class="py-3 text-left text-sm font-medium text-gray-500 px-2">价格</th>
+                  <th class="py-3 text-left text-sm font-medium text-gray-500 px-2">涨跌幅</th>
+                  <th class="py-3 text-left text-sm font-medium text-gray-500 px-2">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- 自选股数据会通过JavaScript动态生成 -->
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- 自选股垂直滚动指示器（浅色） -->
+          <div class="absolute right-0 top-0 h-full w-1 flex items-center">
+            <div class="scroll-indicator h-full w-1">
+              <div id="favoritesScrollHandle" class="scroll-handle h-[100%] w-1"></div>
+            </div>
+          </div>
         </div>
         
         <div class="mt-4 flex justify-between items-center md:hidden">
@@ -133,47 +185,26 @@
         </div>
       </div>
       
-      <!-- 右侧：投资组合 -->
+      <!-- 右侧：投资组合 - 垂直滑动（浅色滚动条） -->
       <div class="md:w-1/3 bg-white rounded-xl shadow-sm p-6">
         <h2 class="text-xl font-bold mb-4">我的投资组合</h2>
         
-        <div class="space-y-4">
-          <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer">
-            <div class="flex justify-between items-center">
-              <h3 class="font-medium">投资组合 1</h3>
-              <span class="text-success text-sm flex items-center">
-                <i class="fa fa-caret-up mr-1"></i> 5.24%
-              </span>
-            </div>
-            <p class="text-gray-500 text-sm mt-1">包含 5 支股票</p>
-            <div class="mt-3 flex flex-wrap gap-2">
-              <span class="bg-blue-50 text-primary text-xs px-2 py-1 rounded-full">AAPL</span>
-              <span class="bg-blue-50 text-primary text-xs px-2 py-1 rounded-full">MSFT</span>
-              <span class="bg-blue-50 text-primary text-xs px-2 py-1 rounded-full">GOOGL</span>
-              <span class="bg-blue-50 text-primary text-xs px-2 py-1 rounded-full">AMZN</span>
-              <span class="bg-blue-50 text-primary text-xs px-2 py-1 rounded-full">TSLA</span>
+        <div class="scroll-container">
+          <!-- 投资组合容器 - 应用浅色滚动条 -->
+          <div id="portfoliosContainer" class="overflow-y-auto light-scrollbar max-h-[500px] pr-2">
+            <!-- 投资组合会通过JavaScript动态生成 -->
+            
+            <div class="border border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center h-32 hover:bg-gray-50 transition-colors cursor-pointer" id="createNewPortfolio">
+              <i class="fa fa-plus-circle text-gray-400 text-2xl mb-2"></i>
+              <p class="text-gray-500 text-sm">创建新的投资组合</p>
             </div>
           </div>
           
-          <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer">
-            <div class="flex justify-between items-center">
-              <h3 class="font-medium">投资组合 2</h3>
-              <span class="text-danger text-sm flex items-center">
-                <i class="fa fa-caret-down mr-1"></i> 1.87%
-              </span>
+          <!-- 投资组合垂直滚动指示器（浅色） -->
+          <div class="absolute right-0 top-0 h-full w-1 flex items-center">
+            <div class="scroll-indicator h-full w-1">
+              <div id="portfoliosScrollHandle" class="scroll-handle h-[100%] w-1"></div>
             </div>
-            <p class="text-gray-500 text-sm mt-1">包含 4 支股票</p>
-            <div class="mt-3 flex flex-wrap gap-2">
-              <span class="bg-blue-50 text-primary text-xs px-2 py-1 rounded-full">META</span>
-              <span class="bg-blue-50 text-primary text-xs px-2 py-1 rounded-full">NVDA</span>
-              <span class="bg-blue-50 text-primary text-xs px-2 py-1 rounded-full">TSLA</span>
-              <span class="bg-blue-50 text-primary text-xs px-2 py-1 rounded-full">AAPL</span>
-            </div>
-          </div>
-          
-          <div class="border border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center h-32 hover:bg-gray-50 transition-colors cursor-pointer">
-            <i class="fa fa-plus-circle text-gray-400 text-2xl mb-2"></i>
-            <p class="text-gray-500 text-sm">创建新的投资组合</p>
           </div>
         </div>
       </div>
@@ -198,10 +229,13 @@
         
         <div class="mb-6">
           <label class="block text-sm font-medium text-gray-700 mb-1">选择股票</label>
-          <div id="selectedStocks" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto p-2 border border-gray-200 rounded-lg">
+          <div id="selectedStocks" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto light-scrollbar p-2 border border-gray-200 rounded-lg">
             <!-- 选中的股票会通过JavaScript动态生成 -->
           </div>
-          <p class="text-gray-500 text-sm mt-2">比例加总不能超过 100%</p>
+          <div class="flex justify-between items-center mt-2">
+            <p class="text-gray-500 text-sm">比例加总必须等于 100%</p>
+            <p id="totalProportion" class="font-medium text-danger">0%</p>
+          </div>
         </div>
         
         <div class="flex justify-end space-x-3">
@@ -277,6 +311,30 @@
   </footer>
 
   <script>
+    // 模拟数据 - 实际应用中会从API获取
+    const mockStocks = [
+      { symbol: "AAPL", name: "苹果公司", price: 178.83, change_percent: 1.23 },
+      { symbol: "MSFT", name: "微软", price: 379.81, change_percent: 0.45 },
+      { symbol: "GOOGL", name: "谷歌", price: 141.67, change_percent: -0.78 },
+      { symbol: "AMZN", name: "亚马逊", price: 133.92, change_percent: 2.34 },
+      { symbol: "TSLA", name: "特斯拉", price: 240.74, change_percent: -1.56 },
+      { symbol: "META", name: "元宇宙", price: 312.54, change_percent: 3.12 },
+      { symbol: "BABA", name: "阿里巴巴", price: 82.37, change_percent: -0.23 },
+      { symbol: "PDD", name: "拼多多", price: 133.79, change_percent: 4.56 },
+      { symbol: "NFLX", name: "奈飞", price: 458.23, change_percent: 1.78 },
+      { symbol: "NVDA", name: "英伟达", price: 437.89, change_percent: 2.91 },
+      { symbol: "BAC", name: "美国银行", price: 29.18, change_percent: -0.56 },
+      { symbol: "JPM", name: "摩根大通", price: 147.83, change_percent: 0.89 },
+      { symbol: "WMT", name: "沃尔玛", price: 160.24, change_percent: -0.34 },
+      { symbol: "JNJ", name: "强生", price: 164.76, change_percent: 0.23 },
+      { symbol: "PG", name: "宝洁", price: 143.52, change_percent: -0.91 },
+      { symbol: "DIS", name: "迪士尼", price: 91.43, change_percent: 1.12 },
+      { symbol: "V", name: "维萨", price: 234.76, change_percent: -0.34 },
+      { symbol: "MA", name: "万事达", price: 467.82, change_percent: 0.78 },
+      { symbol: "INTC", name: "英特尔", price: 32.65, change_percent: -1.23 },
+      { symbol: "AMD", name: "超微", price: 104.32, change_percent: 2.45 },
+    ];
+    
     // 股票行模板
     function createFavoriteRow(stock) {
       const changeClass = stock.change_percent >= 0 ? 'text-success' : 'text-danger';
@@ -284,24 +342,24 @@
       
       return `
         <tr class="border-b border-gray-100 hover:bg-gray-50">
-          <td class="py-3">
+          <td class="py-3 px-2">
             <div class="flex items-center">
               <input type="checkbox" class="stock-checkbox mr-2" data-symbol="${stock.symbol}">
               <span class="font-medium">${stock.symbol}</span>
             </div>
           </td>
-          <td class="py-3">${stock.name}</td>
-          <td class="py-3">¥${stock.price.toFixed(2)}</td>
-          <td class="py-3 ${changeClass}">
+          <td class="py-3 px-2">${stock.name}</td>
+          <td class="py-3 px-2">¥${stock.price.toFixed(2)}</td>
+          <td class="py-3 px-2 ${changeClass}">
             <i class="fa ${changeIcon} mr-1"></i> ${Math.abs(stock.change_percent).toFixed(2)}%
           </td>
-          <td class="py-3">
-            <button class="text-danger hover:text-danger remove-favorite" data-symbol="${stock.symbol}">
+          <td class="py-3 px-2">
+            <!-- <button class="text-danger hover:text-danger remove-favorite" data-symbol="${stock.symbol}">
               <i class="fa fa-heart"></i>
-            </button>
+            </button> -->
             <button class="text-gray-400 hover:text-danger ml-2 remove-stock" data-symbol="${stock.symbol}">
               <i class="fa fa-trash"></i>
-            </button>
+            </button> 
           </td>
         </tr>
       `;
@@ -313,14 +371,75 @@
         <div class="stock-tag flex items-center justify-between bg-blue-50 text-primary px-3 py-2 rounded-lg font-auto" data-symbol="${stock.symbol}">
           <span>${stock.symbol}</span>
           <div class="flex items-center ml-2">
-            <input type="number" class="proportion-input ml-1 px-2 py-1 border border-gray-200 rounded-md text-right text-xs" placeholder="权重" min="0" max="100">
+            <input type="number" class="proportion-input ml-1 px-2 py-1 border border-gray-200 rounded-md text-right text-xs" placeholder="权重比例" min="0" max="100" step="0.1">
             <span class="text-xs ml-1">%</span>
-            <button class="ml-1 text-blue-500 hover:text-blue-700">
+            <button class="ml-1 text-blue-500 hover:text-blue-700 remove-selected">
               <i class="fa fa-times-circle"></i>
             </button>
           </div>
         </div>
       `;
+    }
+    
+    // 投资组合卡片模板
+    function createPortfolioCard(portfolio) {
+      // 计算投资组合的涨跌幅（模拟数据）
+      const randomChange = (Math.random() * 10 - 5).toFixed(2); // -5% 到 5% 之间的随机数
+      const changeClass = randomChange >= 0 ? 'text-success' : 'text-danger';
+      const changeIcon = randomChange >= 0 ? 'fa-caret-up' : 'fa-caret-down';
+      
+      return `
+        <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer portfolio-card" data-id="${portfolio.id}">
+          <div class="flex justify-between items-center">
+            <h3 class="font-medium">${portfolio.name}</h3>
+            <span class="${changeClass} text-sm flex items-center">
+              <i class="fa ${changeIcon} mr-1"></i> ${Math.abs(randomChange)}%
+            </span>
+          </div>
+          <p class="text-gray-500 text-sm mt-1">包含 ${portfolio.stocks.length} 支股票</p>
+          <div class="mt-3 flex flex-wrap gap-2">
+            ${portfolio.stocks.map(stock => `
+              <span class="bg-blue-50 text-primary text-xs px-2 py-1 rounded-full">${stock.symbol}</span>
+            `).join('')}
+          </div>
+          <div class="mt-3 flex justify-end">
+            <button class="text-gray-400 hover:text-danger text-sm delete-portfolio">
+              <i class="fa fa-trash mr-1"></i> 删除
+            </button>
+          </div>
+        </div>
+      `;
+    }
+    
+    // 计算并更新总比例显示
+    function updateTotalProportion() {
+      const inputs = document.querySelectorAll('#selectedStocks input[type="number"]');
+      let total = 0;
+      
+      inputs.forEach(input => {
+        const value = parseFloat(input.value) || 0;
+        total += value;
+      });
+      
+      const totalElement = document.getElementById('totalProportion');
+      totalElement.textContent = `${total.toFixed(1)}%`;
+      
+      // 根据总比例设置颜色
+      if (Math.abs(total - 100) < 0.1) {
+        totalElement.className = 'font-medium text-success';
+      } else {
+        totalElement.className = 'font-medium text-danger';
+      }
+      
+      return total;
+    }
+    
+    // 初始化自选股数据
+    function initFavoriteStocks() {
+      // 如果localStorage中没有数据，使用模拟数据
+      if (!localStorage.getItem('favorites')) {
+        localStorage.setItem('favorites', JSON.stringify(mockStocks));
+      }
     }
     
     // 加载自选股数据
@@ -343,6 +462,7 @@
         `;
         document.getElementById('createPortfolioBtn').setAttribute('disabled', true);
         document.getElementById('mobileCreatePortfolioBtn').setAttribute('disabled', true);
+        updateScrollIndicator('favorites');
         return;
       }
       
@@ -371,12 +491,7 @@
           favorites = favorites.filter(stock => stock.symbol !== symbol);
           localStorage.setItem('favorites', JSON.stringify(favorites));
           loadFavoriteStocks();
-          // 更新 index.html 中的爱心颜色
-          const indexHeart = document.querySelector(`.add-to-favorites[data-symbol="${symbol}"]`);
-          if (indexHeart) {
-            indexHeart.classList.remove('text-danger');
-            indexHeart.classList.add('text-gray-400');
-          }
+          loadPortfolios(); // 更新投资组合显示
         });
       });
       
@@ -388,18 +503,148 @@
           favorites = favorites.filter(stock => stock.symbol !== symbol);
           localStorage.setItem('favorites', JSON.stringify(favorites));
           loadFavoriteStocks();
-          // 更新 index.html 中的爱心颜色
-          const indexHeart = document.querySelector(`.add-to-favorites[data-symbol="${symbol}"]`);
-          if (indexHeart) {
-            indexHeart.classList.remove('text-danger');
-            indexHeart.classList.add('text-gray-400');
-          }
+          loadPortfolios(); // 更新投资组合显示
         });
       });
       
       // 启用创建投资组合按钮
       document.getElementById('createPortfolioBtn').removeAttribute('disabled');
       document.getElementById('mobileCreatePortfolioBtn').removeAttribute('disabled');
+      
+      // 更新滚动指示器
+      updateScrollIndicator('favorites');
+    }
+    
+    // 加载投资组合数据
+    function loadPortfolios() {
+      const portfolios = JSON.parse(localStorage.getItem('portfolios')) || [];
+      const container = document.getElementById('portfoliosContainer');
+      
+      // 清空容器，保留"创建新投资组合"卡片
+      const createNewCard = document.getElementById('createNewPortfolio');
+      container.innerHTML = '';
+      if (createNewCard) {
+        container.appendChild(createNewCard);
+      }
+      
+      if (portfolios.length === 0) {
+        updateScrollIndicator('portfolios');
+        return;
+      }
+      
+      // 添加投资组合卡片到容器，放在"创建新投资组合"卡片之前
+      portfolios.forEach(portfolio => {
+        const portfolioCard = document.createElement('div');
+        portfolioCard.innerHTML = createPortfolioCard(portfolio);
+        container.insertBefore(portfolioCard.firstElementChild, createNewCard);
+      });
+      
+      // 添加删除投资组合事件
+      document.querySelectorAll('.delete-portfolio').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation(); // 阻止事件冒泡到卡片点击事件
+          const portfolioId = this.closest('.portfolio-card').dataset.id;
+          deletePortfolio(portfolioId);
+        });
+      });
+      
+      // 添加点击投资组合卡片事件
+      document.querySelectorAll('.portfolio-card').forEach(card => {
+        card.addEventListener('click', function() {
+          const portfolioId = this.dataset.id;
+          viewPortfolio(portfolioId);
+        });
+      });
+      
+      // 更新滚动指示器
+      updateScrollIndicator('portfolios');
+    }
+    
+    // 更新滚动指示器
+    function updateScrollIndicator(type) {
+      if (type === 'favorites') {
+        const container = document.getElementById('favoritesContainer');
+        const handle = document.getElementById('favoritesScrollHandle');
+        
+        if (!container || !handle) return;
+        
+        const scrollHeight = container.scrollHeight;
+        const clientHeight = container.clientHeight;
+        
+        if (scrollHeight <= clientHeight) {
+          handle.style.height = '100%';
+          handle.style.display = 'none';
+        } else {
+          const ratio = clientHeight / scrollHeight;
+          handle.style.height = `${ratio * 100}%`;
+          handle.style.display = 'block';
+        }
+      } else if (type === 'portfolios') {
+        const container = document.getElementById('portfoliosContainer');
+        const handle = document.getElementById('portfoliosScrollHandle');
+        
+        if (!container || !handle) return;
+        
+        const scrollHeight = container.scrollHeight;
+        const clientHeight = container.clientHeight;
+        
+        if (scrollHeight <= clientHeight) {
+          handle.style.height = '100%';
+          handle.style.display = 'none';
+        } else {
+          const ratio = clientHeight / scrollHeight;
+          handle.style.height = `${ratio * 100}%`;
+          handle.style.display = 'block';
+        }
+      }
+    }
+    
+    // 同步滚动位置和指示器
+    function syncScroll(type) {
+      if (type === 'favorites') {
+        const container = document.getElementById('favoritesContainer');
+        const handle = document.getElementById('favoritesScrollHandle');
+        
+        if (!container || !handle) return;
+        
+        const scrollHeight = container.scrollHeight;
+        const clientHeight = container.clientHeight;
+        const scrollTop = container.scrollTop;
+        
+        if (scrollHeight > clientHeight) {
+          const ratio = scrollTop / (scrollHeight - clientHeight);
+          handle.style.transform = `translateY(${ratio * (clientHeight - handle.offsetHeight)}px)`;
+        }
+      } else if (type === 'portfolios') {
+        const container = document.getElementById('portfoliosContainer');
+        const handle = document.getElementById('portfoliosScrollHandle');
+        
+        if (!container || !handle) return;
+        
+        const scrollHeight = container.scrollHeight;
+        const clientHeight = container.clientHeight;
+        const scrollTop = container.scrollTop;
+        
+        if (scrollHeight > clientHeight) {
+          const ratio = scrollTop / (scrollHeight - clientHeight);
+          handle.style.transform = `translateY(${ratio * (clientHeight - handle.offsetHeight)}px)`;
+        }
+      }
+    }
+    
+    // 删除投资组合
+    function deletePortfolio(id) {
+      if (confirm('确定要删除这个投资组合吗？')) {
+        let portfolios = JSON.parse(localStorage.getItem('portfolios')) || [];
+        portfolios = portfolios.filter(portfolio => portfolio.id !== id);
+        localStorage.setItem('portfolios', JSON.stringify(portfolios));
+        loadPortfolios();
+      }
+    }
+    
+    // 查看投资组合详情
+    function viewPortfolio(id) {
+      alert(`查看投资组合 #${id} 的详情`);
     }
     
     // 更新选中的股票
@@ -412,6 +657,7 @@
       
       if (selectedSymbols.length === 0) {
         selectedStocksContainer.innerHTML = '<p class="text-gray-400 text-sm w-full text-center">未选择任何股票</p>';
+        updateTotalProportion(); // 更新总比例显示
         return;
       }
       
@@ -425,7 +671,7 @@
       });
       
       // 添加移除选中股票事件
-      selectedStocksContainer.querySelectorAll('button').forEach(btn => {
+      selectedStocksContainer.querySelectorAll('.remove-selected').forEach(btn => {
         btn.addEventListener('click', function() {
           const symbol = this.closest('[data-symbol]').dataset.symbol;
           document.querySelector(`.stock-checkbox[data-symbol="${symbol}"]`).checked = false;
@@ -433,15 +679,22 @@
         });
       });
       
+      // 添加比例输入事件监听，实时更新总比例
+      selectedStocksContainer.querySelectorAll('input[type="number"]').forEach(input => {
+        input.addEventListener('input', updateTotalProportion);
+        input.addEventListener('change', updateTotalProportion);
+      });
+      
       // 阻止比例输入框的回车事件冒泡
       selectedStocksContainer.querySelectorAll('input[type="number"]').forEach(input => {
         input.addEventListener('keydown', function(e) {
           if (e.key === 'Enter') {
             e.preventDefault();
-            // 可以在这里添加输入完成后的逻辑
           }
         });
       });
+      
+      updateTotalProportion(); // 初始化总比例显示
     }
     
     // 打开创建投资组合模态框
@@ -461,10 +714,11 @@
       // 重置表单
       document.getElementById('portfolioForm').reset();
       document.getElementById('selectedStocks').innerHTML = '<p class="text-gray-400 text-sm w-full text-center">未选择任何股票</p>';
+      updateTotalProportion(); // 重置总比例显示
     }
     
     // 提交创建投资组合表单
-    async function submitPortfolioForm(e) {
+    function submitPortfolioForm(e) {
       e.preventDefault();
       
       const portfolioName = document.getElementById('portfolioName').value.trim();
@@ -481,51 +735,56 @@
         return;
       }
       
+      // 计算总比例
+      const totalProportion = updateTotalProportion();
+      
+      // 严格检查总比例是否为100%
+      if (Math.abs(totalProportion - 100) > 0.1) {
+        alert('股票比例加总必须严格等于100%，请调整后再试');
+        return;
+      }
+      
+      // 收集比例数据
       const proportions = {};
-      let totalProportion = 0;
       const selectedStockElements = document.querySelectorAll('#selectedStocks [data-symbol]');
       selectedStockElements.forEach(element => {
         const symbol = element.dataset.symbol;
         const input = element.querySelector('input[type="number"]');
         const proportion = parseFloat(input.value) || 0;
-        proportions[symbol] = proportion;
-        totalProportion += proportion;
+        proportions[symbol] = parseFloat(proportion.toFixed(2)); // 保留两位小数
       });
       
-      if (totalProportion > 100) {
-        alert('股票比例加总不能超过 100%');
-        return;
-      }
+      // 创建投资组合对象
+      const portfolio = {
+        id: Date.now().toString(), // 使用时间戳作为唯一ID
+        name: portfolioName,
+        created_at: new Date().toISOString(),
+        stocks: selectedSymbols.map(symbol => ({
+          symbol,
+          proportion: proportions[symbol]
+        }))
+      };
       
-      try {
-        const response = await fetch('/api/portfolios', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: portfolioName, stockSymbols: selectedSymbols, proportions })
-        });
-        
-        const result = await response.json();
-        if (response.ok) {
-          alert('投资组合创建成功');
-          closePortfolioModal();
-          // 这里可以跳转到投资组合详情页
-          window.location.href = `dashboard.html?portfolioId=${result.id}`;
-        } else {
-          alert(`创建失败: ${result.error || '未知错误'}`);
-        }
-      } catch (error) {
-        console.error('Error creating portfolio:', error);
-        alert('创建投资组合失败，请稍后重试');
-      }
+      // 保存到localStorage
+      let portfolios = JSON.parse(localStorage.getItem('portfolios')) || [];
+      portfolios.push(portfolio);
+      localStorage.setItem('portfolios', JSON.stringify(portfolios));
+      
+      alert('投资组合创建成功');
+      closePortfolioModal();
+      loadPortfolios(); // 更新投资组合列表
     }
     
     // 页面加载完成后执行
     document.addEventListener('DOMContentLoaded', () => {
+      initFavoriteStocks();
       loadFavoriteStocks();
+      loadPortfolios();
       
       // 绑定创建投资组合按钮事件
       document.getElementById('createPortfolioBtn').addEventListener('click', openPortfolioModal);
       document.getElementById('mobileCreatePortfolioBtn').addEventListener('click', openPortfolioModal);
+      document.getElementById('createNewPortfolio').addEventListener('click', openPortfolioModal);
       
       // 绑定模态框关闭事件
       document.getElementById('closeModal').addEventListener('click', closePortfolioModal);
@@ -540,10 +799,73 @@
       
       // 绑定表单提交事件
       document.getElementById('portfolioForm').addEventListener('submit', submitPortfolioForm);
-
+      
       // 监听 storage 事件，当 localStorage 变化时更新页面
       window.addEventListener('storage', () => {
         loadFavoriteStocks();
+        loadPortfolios();
+      });
+      
+      // 监听窗口大小变化，更新滚动指示器
+      window.addEventListener('resize', () => {
+        updateScrollIndicator('favorites');
+        updateScrollIndicator('portfolios');
+      });
+      
+      // 监听滚动事件，同步滚动位置和指示器
+      document.getElementById('favoritesContainer')?.addEventListener('scroll', () => syncScroll('favorites'));
+      document.getElementById('portfoliosContainer')?.addEventListener('scroll', () => syncScroll('portfolios'));
+      
+      // 处理自选股滚动指示器拖拽
+      const favoritesHandle = document.getElementById('favoritesScrollHandle');
+      favoritesHandle?.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        const container = document.getElementById('favoritesContainer');
+        const handle = favoritesHandle;
+        
+        const startY = e.clientY;
+        const startScrollTop = container.scrollTop;
+        const maxScrollTop = container.scrollHeight - container.clientHeight;
+        
+        const onMouseMove = (moveEvent) => {
+          const dy = moveEvent.clientY - startY;
+          const newScrollTop = startScrollTop + dy * (maxScrollTop / (container.clientHeight - handle.offsetHeight));
+          container.scrollTop = Math.max(0, Math.min(maxScrollTop, newScrollTop));
+        };
+        
+        const onMouseUp = () => {
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+        };
+        
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+      });
+      
+      // 处理投资组合滚动指示器拖拽
+      const portfoliosHandle = document.getElementById('portfoliosScrollHandle');
+      portfoliosHandle?.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        const container = document.getElementById('portfoliosContainer');
+        const handle = portfoliosHandle;
+        
+        const startY = e.clientY;
+        const startScrollTop = container.scrollTop;
+        const maxScrollTop = container.scrollHeight - container.clientHeight;
+        
+        const onMouseMove = (moveEvent) => {
+          const dy = moveEvent.clientY - startY;
+          const newScrollTop = startScrollTop + dy * (maxScrollTop / (container.clientHeight - handle.offsetHeight));
+          container.scrollTop = Math.max(0, Math.min(maxScrollTop, newScrollTop));
+        };
+        
+        const onMouseUp = () => {
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+        };
+        
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
       });
     });
   </script>
