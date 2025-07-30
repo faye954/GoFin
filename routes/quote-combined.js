@@ -11,13 +11,12 @@ const limit = pLimit(5); // 限制并发请求数为5
 
 // 从文件加载扩展的股票代码列表
 const tickersPath = path.join(__dirname, '../tickers.json');
-const allTickers = fs.existsSync(tickersPath)
-  ? JSON.parse(fs.readFileSync(tickersPath, 'utf8'))
-  : [];
+const allTickers = JSON.parse(fs.readFileSync(tickersPath, 'utf8'));
 
-// 原有热门股票列表
+// 保留原有热门股票（兼容旧接口）
 const popularTickers = ['AAPL', 'TSLA', 'MSFT', 'AMZN', 'NVDA', 'GOOG', 'META', 'NFLX', 'BRK-B', 'JPM'];
 
+// 格式化数字为两位小数
 const format2 = num => parseFloat(num.toFixed(2));
 
 // 指数名称映射
@@ -27,14 +26,14 @@ const indexNames = {
   'SPY': '标普500指数'
 };
 
-// 获取当前时间字符串 (纽约时间)
+// 获取纽约时间字符串
 function getNewYorkTime() {
   const now = new Date();
-  now.setHours(now.getHours() - 4); // 转换为纽约时间 (UTC-4)
+  now.setHours(now.getHours() - 4); // UTC-4
   return now.toISOString().replace('T', ' ').substring(0, 19);
 }
 
-// 原有API请求封装，添加缓存和错误处理
+// ========== 原有带缓存的详细股票数据获取（供 /api/quote1/all 使用） ==========
 async function fetchStockData(ticker) {
   const cacheKey = `stock:${ticker}`;
   const cachedData = cache.get(cacheKey);
@@ -54,16 +53,8 @@ async function fetchStockData(ticker) {
     const data = response.data.chart.result[0];
     const meta = data.meta;
 
-    // 提取可能缺失的字段
-    const peRatio =
-      meta.trailingPE !== undefined ? meta.trailingPE :
-        meta.forwardPE !== undefined ? meta.forwardPE :
-          null;
-
-    const dividendYield =
-      meta.dividendYield !== undefined ? meta.dividendYield * 100 :
-        meta.trailingAnnualDividendYield !== undefined ? meta.trailingAnnualDividendYield * 100 :
-          null;
+    const peRatio = meta.trailingPE ?? meta.forwardPE ?? null;
+    const dividendYield = (meta.dividendYield ?? meta.trailingAnnualDividendYield) * 100 || null;
 
     const result = {
       ticker,
@@ -75,20 +66,18 @@ async function fetchStockData(ticker) {
       change: meta.regularMarketPrice - meta.chartPreviousClose,
       changePercent: ((meta.regularMarketPrice - meta.chartPreviousClose) / meta.chartPreviousClose) * 100,
       volume: data.indicators.quote[0].volume.pop(),
-      marketCap: meta.marketCap !== undefined ? meta.marketCap : null,
+      marketCap: meta.marketCap ?? null,
       peRatio: peRatio,
       dividendYield: dividendYield,
-      eps: meta.epsTrailingTwelveMonths !== undefined ? meta.epsTrailingTwelveMonths : null,
-      beta: meta.beta !== undefined ? meta.beta : null,
+      eps: meta.epsTrailingTwelveMonths ?? null,
+      beta: meta.beta ?? null,
       fiftyTwoWeekHigh: meta.regularMarketDayHigh,
       fiftyTwoWeekLow: meta.regularMarketDayLow
     };
 
-    // 将null转换为"N/A"以便前端展示
+    // 空值转N/A
     Object.keys(result).forEach(key => {
-      if (result[key] === null) {
-        result[key] = 'N/A';
-      }
+      if (result[key] === null) result[key] = 'N/A';
     });
 
     cache.set(cacheKey, result);
@@ -99,8 +88,8 @@ async function fetchStockData(ticker) {
   }
 }
 
-// 新功能：通用股票数据获取函数
-const fetchStockDataNew = async (ticker, isETF = false) => {
+// ========== 新的简单数据获取（供新接口使用） ==========
+const fetchStockDataSimple = async (ticker, isETF = false) => {
   try {
     const url = isETF
       ? `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=5d&interval=1d`
@@ -134,13 +123,15 @@ const fetchStockDataNew = async (ticker, isETF = false) => {
         volume
       };
     }
-  } catch (err) {
-    console.error(`获取 ${ticker} 数据失败:`, err.message);
-    return { ticker: ticker, error: '数据获取失败' };
-  }
-};
+    } catch (err) {
+      console.error(`获取 ${ticker} 数据失败:`, err.message);
+      return { ticker, error: '数据获取失败' };
+    }
+  };
 
-// 原有接口：GET /api/getMarketOverview (市场概览)
+// ========== 原有接口 ==========
+
+// GET /api/getMarketOverview (市场概览)
 router.get('/api/getMarketOverview', async (req, res) => {
   try {
     const etfTickers = ['DIA', 'QQQ', 'SPY'];
@@ -183,7 +174,7 @@ router.get('/api/getMarketOverview', async (req, res) => {
   }
 });
 
-// 原有接口：GET /api/quote1/all (所有股票数据)
+// GET /api/quote1/all (所有股票数据 - 详细版)
 router.get('/api/quote1/all', async (req, res) => {
   try {
     const tickers = req.query.tickers
@@ -203,7 +194,7 @@ router.get('/api/quote1/all', async (req, res) => {
   }
 });
 
-// 原有接口：GET /api/quote/all (所有股票数据，quote.js中的逻辑)
+// GET /api/quote/all (所有股票数据 - 简化版)
 router.get('/api/quote/all', async (req, res) => {
   try {
     const results = await Promise.all(popularTickers.map(async ticker => {
@@ -245,7 +236,7 @@ router.get('/api/quote/all', async (req, res) => {
   }
 });
 
-// 原有接口：GET /api/quote/:ticker
+// GET /api/quote/:ticker (单只股票数据 - 简化版)
 router.get('/api/quote/:ticker', async (req, res) => {
   const { ticker } = req.params;
   try {
@@ -274,11 +265,13 @@ router.get('/api/quote/:ticker', async (req, res) => {
   }
 });
 
-// 新功能接口：GET /api/newquote/market
-router.get('/api/newquote/market', async (req, res) => {
+// ========== 新增接口 ==========
+
+// GET /api/quote/market (市场指数)
+router.get('/api/quote/market', async (req, res) => {
   try {
     const etfTickers = ['DIA', 'QQQ', 'SPY'];
-    const results = await Promise.all(etfTickers.map(ticker => fetchStockDataNew(ticker, true)));
+    const results = await Promise.all(etfTickers.map(ticker => fetchStockDataSimple(ticker, true)));
     res.json(results);
   } catch (err) {
     console.error('ETF市场数据获取失败:', err.message);
@@ -286,22 +279,10 @@ router.get('/api/newquote/market', async (req, res) => {
   }
 });
 
-// 新功能接口：GET /api/newquote/all
-router.get('/api/newquote/all', async (req, res) => {
+// GET /api/quote/popular (热门股票)
+router.get('/api/quote/popular', async (req, res) => {
   try {
-    // 使用从文件加载的所有股票代码
-    const results = await Promise.all(allTickers.map(ticker => fetchStockDataNew(ticker)));
-    res.json(results);
-  } catch (err) {
-    console.error('全量股票数据获取失败:', err.message);
-    res.status(500).json({ error: 'Failed to load all tickers' });
-  }
-});
-
-// 新功能接口：GET /api/newquote/popular
-router.get('/api/newquote/popular', async (req, res) => {
-  try {
-    const results = await Promise.all(popularTickers.map(ticker => fetchStockDataNew(ticker)));
+    const results = await Promise.all(popularTickers.map(ticker => fetchStockDataSimple(ticker)));
     res.json(results);
   } catch (err) {
     console.error('热门股票数据获取失败:', err.message);
@@ -309,25 +290,25 @@ router.get('/api/newquote/popular', async (req, res) => {
   }
 });
 
-// 新功能接口：GET /api/newquote/:ticker
-router.get('/api/newquote/:ticker', async (req, res) => {
-  const { ticker } = req.params;
-  const result = await fetchStockDataNew(ticker);
-  if (result.error) {
-    res.status(404).json(result);
-  } else {
-    res.json(result);
+// GET /api/quote/full (全量股票 - 使用tickers.json)
+router.get('/api/quote/full', async (req, res) => {
+  try {
+    const results = await Promise.all(allTickers.map(ticker => fetchStockDataSimple(ticker)));
+    res.json(results);
+  } catch (err) {
+    console.error('全量股票数据获取失败:', err.message);
+    res.status(500).json({ error: 'Failed to load all tickers' });
   }
 });
 
-// 新功能接口：POST /api/newquote/batch
-router.post('/api/newquote/batch', async (req, res) => {
+// POST /api/quote/batch (批量查询)
+router.post('/api/quote/batch', async (req, res) => {
   const { tickers } = req.body;
   if (!tickers || !Array.isArray(tickers) || tickers.length === 0) {
     return res.status(400).json({ error: '请提供有效的股票代码数组' });
   }
   try {
-    const results = await Promise.all(tickers.map(ticker => fetchStockDataNew(ticker)));
+    const results = await Promise.all(tickers.map(ticker => fetchStockDataSimple(ticker)));
     res.json(results);
   } catch (err) {
     console.error('批量查询失败:', err.message);
