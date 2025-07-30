@@ -46,18 +46,25 @@
         display: none;
       }
       .card-hover {
-        @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+        transition: all 0.3s ease;
       }
-      .btn-primary {
-        @apply bg-primary text-white px-4 py-2 rounded-lg transition-all duration-300 hover:bg-primary/90 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50;
+      .card-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
       }
-      .btn-secondary {
-        @apply bg-white border border-primary text-primary px-4 py-2 rounded-lg transition-all duration-300 hover:bg-primary/5 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50;
+      .stock-tag {
+        height: 36px;
+      }
+      .proportion-input {
+        width: 70px; /* 增大比例输入框宽度 */
+      }
+      .font-auto {
+        font-size: clamp(0.75rem, 2vw, 0.875rem);
       }
     }
   </style>
 </head>
-<body class="font-inter bg-gray-50 text-dark min-h-screen flex flex-col">
+<body class="font-inter bg-gray-50">
   <!-- 导航栏 -->
   <header class="bg-white shadow-sm sticky top-0 z-50">
     <div class="container mx-auto px-4 py-3 flex justify-between items-center">
@@ -68,7 +75,7 @@
       
       <nav class="hidden md:flex items-center space-x-6">
         <a href="index.html" id="nav-home" class="font-medium text-dark hover:text-primary transition-colors">首页</a>
-        <a href="favorites.html" id="nav-favorites" class="font-medium text-primary border-b-2 border-primary pb-1">自选</a>
+        <a href="favorites.html" id="nav-favorites" class="font-medium text-primary border-b-2 border-primary pb-1 text-dark hover:text-primary transition-colors">自选</a>
         <a href="dashboard.html" id="nav-dashboard" class="font-medium text-dark hover:text-primary transition-colors">投资组合</a>
       </nav>
       
@@ -92,7 +99,7 @@
       <div class="md:w-2/3 bg-white rounded-xl shadow-sm p-6">
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-2xl font-bold">我的自选</h2>
-          <button id="createPortfolioBtn" class="btn-primary hidden md:flex items-center">
+          <button id="createPortfolioBtn" class="bg-primary text-white px-4 py-2 rounded-lg flex items-center">
             <i class="fa fa-plus-circle mr-2"></i> 创建投资组合
           </button>
         </div>
@@ -120,7 +127,7 @@
         </div>
         
         <div class="mt-4 flex justify-between items-center md:hidden">
-          <button id="mobileCreatePortfolioBtn" class="btn-primary w-full flex items-center justify-center">
+          <button id="mobileCreatePortfolioBtn" class="bg-primary text-white px-4 py-2 rounded-lg w-full flex items-center justify-center">
             <i class="fa fa-plus-circle mr-2"></i> 创建投资组合
           </button>
         </div>
@@ -191,14 +198,15 @@
         
         <div class="mb-6">
           <label class="block text-sm font-medium text-gray-700 mb-1">选择股票</label>
-          <div id="selectedStocks" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-60 overflow-y-auto p-2 border border-gray-200 rounded-lg">
+          <div id="selectedStocks" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto p-2 border border-gray-200 rounded-lg">
             <!-- 选中的股票会通过JavaScript动态生成 -->
           </div>
+          <p class="text-gray-500 text-sm mt-2">比例加总不能超过 100%</p>
         </div>
         
         <div class="flex justify-end space-x-3">
-          <button type="button" id="cancelPortfolio" class="btn-secondary">取消</button>
-          <button type="submit" class="btn-primary">创建组合</button>
+          <button type="button" id="cancelPortfolio" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg">取消</button>
+          <button type="submit" class="bg-primary text-white px-4 py-2 rounded-lg">创建组合</button>
         </div>
       </form>
     </div>
@@ -302,11 +310,15 @@
     // 选中的股票标签模板
     function createSelectedStockTag(stock) {
       return `
-        <div class="flex items-center justify-between bg-blue-50 text-primary px-2 py-1 rounded-full text-sm" data-symbol="${stock.symbol}">
-          ${stock.symbol}
-          <button class="ml-2 text-blue-500 hover:text-blue-700">
-            <i class="fa fa-times-circle"></i>
-          </button>
+        <div class="stock-tag flex items-center justify-between bg-blue-50 text-primary px-3 py-2 rounded-lg font-auto" data-symbol="${stock.symbol}">
+          <span>${stock.symbol}</span>
+          <div class="flex items-center ml-2">
+            <input type="number" class="proportion-input ml-1 px-2 py-1 border border-gray-200 rounded-md text-right text-xs" placeholder="权重" min="0" max="100">
+            <span class="text-xs ml-1">%</span>
+            <button class="ml-1 text-blue-500 hover:text-blue-700">
+              <i class="fa fa-times-circle"></i>
+            </button>
+          </div>
         </div>
       `;
     }
@@ -314,7 +326,6 @@
     // 加载自选股数据
     async function loadFavoriteStocks() {
       const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-      
       const tableBody = document.querySelector('tbody');
       tableBody.innerHTML = '';
       
@@ -421,6 +432,16 @@
           updateSelectedStocks();
         });
       });
+      
+      // 阻止比例输入框的回车事件冒泡
+      selectedStocksContainer.querySelectorAll('input[type="number"]').forEach(input => {
+        input.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            // 可以在这里添加输入完成后的逻辑
+          }
+        });
+      });
     }
     
     // 打开创建投资组合模态框
@@ -460,11 +481,27 @@
         return;
       }
       
+      const proportions = {};
+      let totalProportion = 0;
+      const selectedStockElements = document.querySelectorAll('#selectedStocks [data-symbol]');
+      selectedStockElements.forEach(element => {
+        const symbol = element.dataset.symbol;
+        const input = element.querySelector('input[type="number"]');
+        const proportion = parseFloat(input.value) || 0;
+        proportions[symbol] = proportion;
+        totalProportion += proportion;
+      });
+      
+      if (totalProportion > 100) {
+        alert('股票比例加总不能超过 100%');
+        return;
+      }
+      
       try {
         const response = await fetch('/api/portfolios', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: portfolioName, stockSymbols: selectedSymbols })
+          body: JSON.stringify({ name: portfolioName, stockSymbols: selectedSymbols, proportions })
         });
         
         const result = await response.json();
