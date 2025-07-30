@@ -1,7 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const combinedRoutes = require('./routes/quote-combined'); // 引入合并后的路由
+const combinedRoutes = require('./routes/quote-combined');
+const portfolioRoutes = require('./routes/portfolio');
 
 const app = express();
 const PORT = 3001;
@@ -17,6 +18,8 @@ app.use('/image', express.static('image'));
 
 // 使用合并后的路由
 app.use(combinedRoutes);
+
+app.use('/', portfolioRoutes);
 
 // 启动服务器
 app.listen(PORT, () => {
