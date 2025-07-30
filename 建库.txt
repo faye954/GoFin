@@ -1,0 +1,21 @@
+-- 创建数据库
+CREATE DATABASE IF NOT EXISTS gofin_portfolios;
+
+-- 使用数据库
+USE gofin_portfolios;
+
+-- 创建投资组合表
+CREATE TABLE IF NOT EXISTS portfolios (
+                                          id INT AUTO_INCREMENT PRIMARY KEY,
+                                          name VARCHAR(255) NOT NULL,
+                                          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 创建投资组合股票关联表
+CREATE TABLE IF NOT EXISTS portfolio_stocks (
+                                                id INT AUTO_INCREMENT PRIMARY KEY,
+                                                portfolio_id INT NOT NULL,
+                                                stock_symbol VARCHAR(20) NOT NULL,
+                                                proportion DECIMAL(5, 2) NOT NULL,
+                                                FOREIGN KEY (portfolio_id) REFERENCES portfolios(id)
+);
