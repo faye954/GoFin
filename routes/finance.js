@@ -1,6 +1,8 @@
+// routes/finance.js
 const express = require('express');
 const router = express.Router();
 const { getCurrentPrice } = require('../services/priceService');
+const yahoo = require('yahoo-finance2').default;
 
 router.get('/:ticker', async (req, res) => {
   const { ticker } = req.params;
@@ -12,8 +14,6 @@ router.get('/:ticker', async (req, res) => {
   }
 });
 
-module.exports = router;
-
 router.get('/quote-summary/:ticker', async (req, res) => {
   try {
     const data = await yahoo.getSummary(req.params.ticker);
@@ -24,3 +24,4 @@ router.get('/quote-summary/:ticker', async (req, res) => {
 });
 
 module.exports = router;
+
