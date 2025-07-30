@@ -5,6 +5,10 @@ const app = express();
 // 引入合并后的路由
 const combinedRoutes = require('./routes/quote-combined');
 
+const portfolioRoutes = require('./routes/portfolio');
+app.use('/', portfolioRoutes);
+
+
 app.use(cors());
 app.use(express.json());
 
