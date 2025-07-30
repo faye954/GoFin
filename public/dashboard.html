@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +9,7 @@
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  
+
   <script>
     tailwind.config = {
       theme: {
@@ -30,7 +31,7 @@
       }
     }
   </script>
-  
+
   <style type="text/tailwindcss">
     @layer utilities {
       .content-auto {
@@ -55,6 +56,7 @@
     }
   </style>
 </head>
+
 <body class="font-inter bg-gray-50 text-dark min-h-screen flex flex-col">
   <!-- 导航栏 -->
   <header class="bg-white shadow-sm sticky top-0 z-50">
@@ -63,19 +65,21 @@
         <img src="../image/logo2.png" alt="GoFin Logo" class="h-10 w-10">
         <h1 class="text-xl font-bold text-primary">GoFin</h1>
       </div>
-      
+
       <nav class="hidden md:flex items-center space-x-6">
-         <a href="index.html" id="nav-home" class="font-medium text-dark hover:text-primary transition-colors">首页</a>
-        <a href="favorites.html" id="nav-favorites" class="font-medium text-dark hover:text-primary transition-colors">自选</a>
-         <a href="dashboard.html" id="nav-home" class="font-medium text-primary border-b-2 border-primary pb-1">投资组合</a>
+        <a href="index.html" id="nav-home" class="font-medium text-dark hover:text-primary transition-colors">首页</a>
+        <a href="favorites.html" id="nav-favorites"
+          class="font-medium text-dark hover:text-primary transition-colors">自选</a>
+        <a href="dashboard.html" id="nav-home" class="font-medium text-primary border-b-2 border-primary pb-1">投资组合</a>
       </nav>
-      
+
       <div class="flex items-center space-x-4">
         <div class="relative hidden md:block">
-          <input type="text" placeholder="搜索股票..." class="pl-10 pr-4 py-2 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50 w-64">
+          <input type="text" placeholder="搜索股票..."
+            class="pl-10 pr-4 py-2 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50 w-64">
           <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
         </div>
-        
+
         <button class="md:hidden text-dark text-xl">
           <i class="fa fa-bars"></i>
         </button>
@@ -87,7 +91,7 @@
   <main class="flex-grow container mx-auto px-4 py-6">
     <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
       <h2 class="text-2xl font-bold mb-4">投资组合对比分析</h2>
-      
+
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div class="bg-blue-50 rounded-lg p-4">
           <div class="flex justify-between items-center mb-2">
@@ -105,7 +109,7 @@
             <span class="bg-blue-100 text-primary text-xs px-2 py-1 rounded-full">TSLA</span>
           </div>
         </div>
-        
+
         <div class="bg-green-50 rounded-lg p-4">
           <div class="flex justify-between items-center mb-2">
             <h3 class="font-semibold">投资组合 2</h3>
@@ -122,7 +126,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="flex flex-wrap gap-4 mb-6">
         <div class="flex items-center">
           <span class="text-sm text-gray-500 mr-2">时间范围:</span>
@@ -133,7 +137,7 @@
             <button class="px-3 py-1 text-sm hover:bg-gray-100">1年</button>
           </div>
         </div>
-        
+
         <div class="flex items-center">
           <span class="text-sm text-gray-500 mr-2">图表类型:</span>
           <div class="flex rounded-lg overflow-hidden border border-gray-200">
@@ -144,7 +148,7 @@
         </div>
       </div>
     </div>
-    
+
     <!-- 图表区域 -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
       <div class="bg-white rounded-xl shadow-sm p-6">
@@ -153,7 +157,7 @@
           <canvas id="performanceChart"></canvas>
         </div>
       </div>
-      
+
       <div class="bg-white rounded-xl shadow-sm p-6">
         <h3 class="text-xl font-bold mb-4">资产配置</h3>
         <div class="h-80">
@@ -161,7 +165,7 @@
         </div>
       </div>
     </div>
-    
+
     <!-- 统计数据 -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
       <div class="bg-white rounded-xl shadow-sm p-6">
@@ -178,7 +182,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="bg-white rounded-xl shadow-sm p-6">
         <h4 class="text-gray-500 text-sm mb-2">风险指标</h4>
         <div class="flex items-end justify-between">
@@ -193,7 +197,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="bg-white rounded-xl shadow-sm p-6">
         <h4 class="text-gray-500 text-sm mb-2">夏普比率</h4>
         <div class="flex items-end justify-between">
@@ -208,7 +212,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="bg-white rounded-xl shadow-sm p-6">
         <h4 class="text-gray-500 text-sm mb-2">最大回撤</h4>
         <div class="flex items-end justify-between">
@@ -224,11 +228,11 @@
         </div>
       </div>
     </div>
-    
+
     <!-- 股票详情 -->
     <div class="bg-white rounded-xl shadow-sm p-6">
       <h3 class="text-xl font-bold mb-4">组合成分股表现</h3>
-      
+
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <h4 class="font-semibold mb-3">投资组合 1 成分</h4>
@@ -268,7 +272,8 @@
                 <tr class="border-b border-gray-100 hover:bg-gray-50">
                   <td class="py-3">
                     <div class="flex items-center">
-                      <img src="https://picsum.photos/20/20?random=3" alt="GOOGL logo" class="w-5 h-5 rounded-full mr-2">
+                      <img src="https://picsum.photos/20/20?random=3" alt="GOOGL logo"
+                        class="w-5 h-5 rounded-full mr-2">
                       GOOGL
                     </div>
                   </td>
@@ -302,7 +307,7 @@
             </table>
           </div>
         </div>
-        
+
         <div>
           <h4 class="font-semibold mb-3">投资组合 2 成分</h4>
           <div class="overflow-x-auto">
@@ -379,7 +384,7 @@
           </div>
           <p class="text-gray-500 text-sm">专业的股票投资组合分析工具，帮助你做出更明智的投资决策。</p>
         </div>
-        
+
         <div>
           <h4 class="font-semibold mb-4">产品</h4>
           <ul class="space-y-2 text-sm">
@@ -389,7 +394,7 @@
             <li><a href="#" class="text-gray-500 hover:text-primary">财经日历</a></li>
           </ul>
         </div>
-        
+
         <div>
           <h4 class="font-semibold mb-4">支持</h4>
           <ul class="space-y-2 text-sm">
@@ -399,28 +404,32 @@
             <li><a href="#" class="text-gray-500 hover:text-primary">联系我们</a></li>
           </ul>
         </div>
-        
+
         <div>
           <h4 class="font-semibold mb-4">关注我们</h4>
           <div class="flex space-x-4 mb-4">
-            <a href="#" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-primary hover:text-white transition-colors">
+            <a href="#"
+              class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-primary hover:text-white transition-colors">
               <i class="fa fa-weibo"></i>
             </a>
-            <a href="#" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-primary hover:text-white transition-colors">
+            <a href="#"
+              class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-primary hover:text-white transition-colors">
               <i class="fa fa-wechat"></i>
             </a>
-            <a href="#" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-primary hover:text-white transition-colors">
+            <a href="#"
+              class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-primary hover:text-white transition-colors">
               <i class="fa fa-twitter"></i>
             </a>
           </div>
           <p class="text-gray-500 text-sm">订阅我们的财经资讯</p>
           <div class="mt-2 flex">
-            <input type="email" placeholder="您的邮箱地址" class="flex-grow px-3 py-2 rounded-l-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50">
+            <input type="email" placeholder="您的邮箱地址"
+              class="flex-grow px-3 py-2 rounded-l-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50">
             <button class="bg-primary text-white px-4 py-2 rounded-r-lg">订阅</button>
           </div>
         </div>
       </div>
-      
+
       <div class="border-t border-gray-200 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
         <p class="text-gray-500 text-sm">© 2025 GoFin. 保留所有权利。</p>
         <div class="flex space-x-4 mt-4 md:mt-0">
@@ -480,7 +489,7 @@
           },
           scales: {
             x: { grid: { display: false } },
-            y: { 
+            y: {
               beginAtZero: false,
               ticks: { callback: value => value + '%' }
             }
@@ -492,7 +501,7 @@
           }
         }
       });
-      
+
       // 资产配置图表
       const allocationCtx = document.getElementById('allocationChart').getContext('2d');
       new Chart(allocationCtx, {
@@ -520,7 +529,7 @@
           plugins: { legend: { position: 'top' } },
           scales: {
             x: { grid: { display: false } },
-            y: { 
+            y: {
               beginAtZero: true,
               ticks: { callback: value => value + '%' }
             }
@@ -528,15 +537,15 @@
         }
       });
     }
-    
+
     // 页面加载完成后执行
     document.addEventListener('DOMContentLoaded', () => {
       initCharts();
-      
+
       // 模拟从URL参数获取投资组合ID
       const urlParams = new URLSearchParams(window.location.search);
       const portfolioId = urlParams.get('portfolioId');
-      
+
       // 如果有投资组合ID，可以加载实际数据
       if (portfolioId) {
         // 这里可以添加加载投资组合数据的代码
@@ -544,147 +553,159 @@
     });
   </script>
 </body>
-</html>  <!DOCTYPE html>
+
+</html>
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Portfolio Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: sans-serif; padding: 20px; background: #f5f5f5; }
-    h2 { margin-top: 40px; text-align: center; }
-    table { border-collapse: collapse; width: 90%; margin: 20px auto; background: #fff; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    canvas { max-width: 800px; margin: 30px auto; display: block; background: #fff; padding: 10px; }
-    .button { display: block; margin: 30px auto; padding: 10px 20px; font-size: 16px; }
-    .green { color: green; }
-    .red { color: red; }
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+
+    h2 {
+      margin-top: 40px;
+      text-align: center;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 90%;
+      margin: 20px auto;
+      background: #fff;
+    }
+
+    th,
+    td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+
+    canvas {
+      max-width: 800px;
+      margin: 30px auto;
+      display: block;
+      background: #fff;
+      padding: 10px;
+    }
+
+    .button {
+      display: block;
+      margin: 30px auto;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+
+    .green {
+      color: green;
+    }
+
+    .red {
+      color: red;
+    }
   </style>
 </head>
+
 <body>
 
-<h1 style="text-align: center;">📊 投资组合对比 Dashboard</h1>
+  <script>
+    const portfolio1 = ['AAPL', 'TSLA'];
+    const portfolio2 = ['GOOG', 'NVDA'];
+    const baseUrl = 'http://localhost:3001/api/quote/';
 
-<h2>📋 Portfolio 1 组成</h2>
-<table id="portfolio1-table">
-  <thead>
-    <tr><th>股票代码</th><th>当前价格</th><th>涨跌幅</th></tr>
-  </thead>
-  <tbody></tbody>
-</table>
+    const prices1 = [], prices2 = [];
 
-<h2>📋 Portfolio 2 组成</h2>
-<table id="portfolio2-table">
-  <thead>
-    <tr><th>股票代码</th><th>当前价格</th><th>涨跌幅</th></tr>
-  </thead>
-  <tbody></tbody>
-</table>
+    async function loadPortfolio(portfolio, tableId, priceList, avgId, sumId) {
+      const tbody = document.querySelector(tableId);
+      for (const ticker of portfolio) {
+        const res = await fetch(baseUrl + ticker);
+        const data = await res.json();
 
-<h2>📈 收益曲线</h2>
-<canvas id="performanceChart"></canvas>
-
-<h2>📊 总结比较</h2>
-<table>
-  <thead><tr><th>组合</th><th>平均涨幅</th><th>总收益</th></tr></thead>
-  <tbody>
-    <tr><td>Portfolio 1</td><td id="avg1"></td><td id="sum1"></td></tr>
-    <tr><td>Portfolio 2</td><td id="avg2"></td><td id="sum2"></td></tr>
-  </tbody>
-</table>
-
-<button class="button" onclick="location.href='index.html'">🔙 回到首页</button>
-
-<script>
-  const portfolio1 = ['AAPL', 'TSLA'];
-  const portfolio2 = ['GOOG', 'NVDA'];
-  const baseUrl = 'http://localhost:3001/api/quote/';
-
-  const prices1 = [], prices2 = [];
-
-  async function loadPortfolio(portfolio, tableId, priceList, avgId, sumId) {
-    const tbody = document.querySelector(tableId);
-    for (const ticker of portfolio) {
-      const res = await fetch(baseUrl + ticker);
-      const data = await res.json();
-
-      const row = document.createElement("tr");
-      row.innerHTML = `
+        const row = document.createElement("tr");
+        row.innerHTML = `
         <td>${data.ticker}</td>
         <td>$${data.price.toFixed(2)}</td>
         <td class="${data.changePercent >= 0 ? 'green' : 'red'}">
           ${(data.changePercent * 100).toFixed(2)}%
         </td>`;
-      tbody.appendChild(row);
+        tbody.appendChild(row);
 
-      priceList.push(data.price);
+        priceList.push(data.price);
+      }
     }
-  }
 
-  async function init() {
-    await loadPortfolio(portfolio1, "#portfolio1-table tbody", prices1);
-    await loadPortfolio(portfolio2, "#portfolio2-table tbody", prices2);
+    async function init() {
+      await loadPortfolio(portfolio1, "#portfolio1-table tbody", prices1);
+      await loadPortfolio(portfolio2, "#portfolio2-table tbody", prices2);
 
-    const avg1 = (prices1.reduce((a, b) => a + b) / prices1.length).toFixed(2);
-    const sum1 = prices1.reduce((a, b) => a + b).toFixed(2);
-    const avg2 = (prices2.reduce((a, b) => a + b) / prices2.length).toFixed(2);
-    const sum2 = prices2.reduce((a, b) => a + b).toFixed(2);
+      const avg1 = (prices1.reduce((a, b) => a + b) / prices1.length).toFixed(2);
+      const sum1 = prices1.reduce((a, b) => a + b).toFixed(2);
+      const avg2 = (prices2.reduce((a, b) => a + b) / prices2.length).toFixed(2);
+      const sum2 = prices2.reduce((a, b) => a + b).toFixed(2);
 
-    document.getElementById("avg1").textContent = `$${avg1}`;
-    document.getElementById("sum1").textContent = `$${sum1}`;
-    document.getElementById("avg2").textContent = `$${avg2}`;
-    document.getElementById("sum2").textContent = `$${sum2}`;
+      document.getElementById("avg1").textContent = `$${avg1}`;
+      document.getElementById("sum1").textContent = `$${sum1}`;
+      document.getElementById("avg2").textContent = `$${avg2}`;
+      document.getElementById("sum2").textContent = `$${sum2}`;
 
-    drawChart();
-  }
+      drawChart();
+    }
 
-  function drawChart() {
-    const labels = ["Day 1", "Day 2", "Day 3", "Day 4", "Day 5"];
-    const data1 = [0, 0.01, 0.02, 0.03, 0.05];
-    const data2 = [0, 0.02, 0.015, 0.035, 0.06];
+    function drawChart() {
+      const labels = ["Day 1", "Day 2", "Day 3", "Day 4", "Day 5"];
+      const data1 = [0, 0.01, 0.02, 0.03, 0.05];
+      const data2 = [0, 0.02, 0.015, 0.035, 0.06];
 
-    const ctx = document.getElementById("performanceChart").getContext("2d");
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            label: 'Portfolio 1',
-            data: data1,
-            borderColor: 'blue',
-            fill: false
-          },
-          {
-            label: 'Portfolio 2',
-            data: data2,
-            borderColor: 'green',
-            fill: false
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          title: {
-            display: true,
-            text: '累计收益曲线（模拟）'
-          }
-        },
-        scales: {
-          y: {
-            ticks: {
-              callback: val => (val * 100).toFixed(1) + '%'
+      const ctx = document.getElementById("performanceChart").getContext("2d");
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Portfolio 1',
+              data: data1,
+              borderColor: 'blue',
+              fill: false
             },
-            title: { display: true, text: '收益率' }
+            {
+              label: 'Portfolio 2',
+              data: data2,
+              borderColor: 'green',
+              fill: false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: '累计收益曲线（模拟）'
+            }
+          },
+          scales: {
+            y: {
+              ticks: {
+                callback: val => (val * 100).toFixed(1) + '%'
+              },
+              title: { display: true, text: '收益率' }
+            }
           }
         }
-      }
-    });
-  }
+      });
+    }
 
-  init();
-</script>
+    init();
+  </script>
 
 </body>
+
 </html>
