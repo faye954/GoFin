@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const combinedRoutes = require('./routes/quote-combined');
 const portfolioRoutes = require('./routes/portfolio');
+const historyRoutes = require('./routes/history');
 
 const app = express();
 const PORT = 3001;
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 // 图片静态服务
 app.use('/image', express.static('image'));
+app.use('/api', historyRoutes);
 
 // 使用合并后的路由
 app.use(combinedRoutes);
