@@ -4,7 +4,7 @@ const axios = require('axios');
 const router = express.Router();
 
 // 修改后的路径，匹配前端 /api/history/:ticker 请求
-router.get('/api/history/:ticker', async (req, res) => {
+router.get('/history/:ticker', async (req, res) => {
   const { ticker } = req.params;
   const now = Math.floor(Date.now() / 1000);
   const days = 5;

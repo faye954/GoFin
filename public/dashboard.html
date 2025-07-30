@@ -328,61 +328,14 @@
                 <tr class="border-b border-gray-200">
                   <th class="py-3 text-left text-sm font-medium text-gray-500">股票代码</th>
                   <th class="py-3 text-left text-sm font-medium text-gray-500">权重</th>
-                  <th class="py-3 text-left text-sm font-medium text-gray-500">收益率</th>
-                  <th class="py-3 text-left text-sm font-medium text-gray-500">价格</th>
+                  <th class="py-3 text-left text-sm font-medium text-gray-500">SMA</th>
+                  <th class="py-3 text-left text-sm font-medium text-gray-500">VWAP</th>
+                  <th class="py-3 text-left text-sm font-medium text-gray-500">volatility</th>
+
                 </tr>
               </thead>
               <tbody>
-                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                  <td class="py-3">
-                    <div class="flex items-center">
-                      AAPL
-                    </div>
-                  </td>
-                  <td class="py-3">25%</td>
-                  <td class="py-3 text-success">+8.32%</td>
-                  <td class="py-3">¥175.48</td>
-                </tr>
-                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                  <td class="py-3">
-                    <div class="flex items-center">
-                      MSFT
-                    </div>
-                  </td>
-                  <td class="py-3">20%</td>
-                  <td class="py-3 text-success">+6.78%</td>
-                  <td class="py-3">¥340.15</td>
-                </tr>
-                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                  <td class="py-3">
-                    <div class="flex items-center">
-                      GOOGL
-                    </div>
-                  </td>
-                  <td class="py-3">15%</td>
-                  <td class="py-3 text-danger">-2.15%</td>
-                  <td class="py-3">¥132.65</td>
-                </tr>
-                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                  <td class="py-3">
-                    <div class="flex items-center">
-                      AMZN
-                    </div>
-                  </td>
-                  <td class="py-3">15%</td>
-                  <td class="py-3 text-success">+12.45%</td>
-                  <td class="py-3">¥134.48</td>
-                </tr>
-                <tr class="hover:bg-gray-50">
-                  <td class="py-3">
-                    <div class="flex items-center">
-                      TSLA
-                    </div>
-                  </td>
-                  <td class="py-3">25%</td>
-                  <td class="py-3 text-danger">-4.67%</td>
-                  <td class="py-3">¥240.74</td>
-                </tr>
+
               </tbody>
             </table>
           </div>
@@ -396,61 +349,13 @@
                 <tr class="border-b border-gray-200">
                   <th class="py-3 text-left text-sm font-medium text-gray-500">股票代码</th>
                   <th class="py-3 text-left text-sm font-medium text-gray-500">权重</th>
-                  <th class="py-3 text-left text-sm font-medium text-gray-500">收益率</th>
-                  <th class="py-3 text-left text-sm font-medium text-gray-500">价格</th>
+                  <th class="py-3 text-left text-sm font-medium text-gray-500">SMA</th>
+                  <th class="py-3 text-left text-sm font-medium text-gray-500">VWAP</th>
+                  <th class="py-3 text-left text-sm font-medium text-gray-500">volatility</th>
                 </tr>
               </thead>
               <tbody>
-                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                  <td class="py-3">
-                    <div class="flex items-center">
-                      JPM
-                    </div>
-                  </td>
-                  <td class="py-3">20%</td>
-                  <td class="py-3 text-success">+3.25%</td>
-                  <td class="py-3">¥172.64</td>
-                </tr>
-                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                  <td class="py-3">
-                    <div class="flex items-center">
-                      BAC
-                    </div>
-                  </td>
-                  <td class="py-3">20%</td>
-                  <td class="py-3 text-success">+2.18%</td>
-                  <td class="py-3">¥32.45</td>
-                </tr>
-                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                  <td class="py-3">
-                    <div class="flex items-center">
-                      META
-                    </div>
-                  </td>
-                  <td class="py-3">20%</td>
-                  <td class="py-3 text-success">+9.12%</td>
-                  <td class="py-3">¥307.64</td>
-                </tr>
-                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                  <td class="py-3">
-                    <div class="flex items-center">
-                      NVDA
-                    </div>
-                  </td>
-                  <td class="py-3">20%</td>
-                  <td class="py-3 text-success">+15.34%</td>
-                  <td class="py-3">¥424.76</td>
-                </tr>
-                <tr class="hover:bg-gray-50">
-                  <td class="py-3">
-                    <div class="flex items-center">
-                      AAPL
-                    </div>
-                  </td>
-                  <td class="py-3">20%</td>
-                  <td class="py-3 text-success">+8.32%</td>
-                  <td class="py-3">¥175.48</td>
-                </tr>
+                
               </tbody>
             </table>
           </div>
@@ -739,12 +644,72 @@
         } catch (error) {
           console.error('加载数据出错:', error);
           // 显示错误信息
-          alert('无法加载投资组合数据，请稍后再试');
+         // alert('无法加载投资组合数据，请稍后再试');
         }
       }
     // 页面加载完成后执行
     document.addEventListener('DOMContentLoaded', () => {
       loadPortfolioData();
+    });
+    async function fetchStockMetric(ticker) {
+      try {
+        const res = await fetch(`http://localhost:3001/api/history/${ticker}`);
+        if (!res.ok) throw new Error(`${ticker} 请求失败`);
+        return await res.json();
+      } catch (err) {
+        console.error(`获取 ${ticker} 数据失败:`, err);
+        return null;
+      }
+    }
+  
+    async function loadStockMetrics() {
+      const portfolio1 = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA"];
+      const weights1 = [25, 20, 15, 15, 25];
+      const portfolio2 = ["JPM", "BAC", "META", "NVDA", "AAPL"];
+      const weights2 = [20, 20, 20, 20, 20];
+  
+      const tbody1 = document.querySelectorAll("table tbody")[0];
+      const tbody2 = document.querySelectorAll("table tbody")[1];
+  
+      for (let i = 0; i < portfolio1.length; i++) {
+        const ticker = portfolio1[i];
+        const weight = weights1[i];
+        const data = await fetchStockMetric(ticker);
+        if (data) {
+          const row = `
+            <tr class="border-b border-gray-100">
+              <td class="py-2 text-sm">${ticker}</td>
+              <td class="py-2 text-sm">${weight}%</td>
+              <td class="py-2 text-sm">${data.SMA.toFixed(2)}</td>
+              <td class="py-2 text-sm">${data.VWAP.toFixed(2)}</td>
+              <td class="py-2 text-sm">${data.volatility.toFixed(2)}</td>
+            </tr>`;
+          tbody1.insertAdjacentHTML('beforeend', row);
+        }
+      }
+  
+      for (let i = 0; i < portfolio2.length; i++) {
+        const ticker = portfolio2[i];
+        const weight = weights2[i];
+        const data = await fetchStockMetric(ticker);
+        if (data) {
+          const row = `
+            <tr class="border-b border-gray-100">
+              <td class="py-2 text-sm">${ticker}</td>
+              <td class="py-2 text-sm">${weight}%</td>
+              <td class="py-2 text-sm">${data.SMA.toFixed(2)}</td>
+              <td class="py-2 text-sm">${data.VWAP.toFixed(2)}</td>
+              <td class="py-2 text-sm">${data.volatility.toFixed(2)}</td>
+            </tr>`;
+          tbody2.insertAdjacentHTML('beforeend', row);
+        }
+      }
+    }
+  
+    // 👇 修改这个初始化代码，把两个函数都调用
+    document.addEventListener('DOMContentLoaded', () => {
+      loadPortfolioData();    // 原有图表和指标加载
+      loadStockMetrics();     // 新增成分股表格加载
     });
   </script>
 </body>
