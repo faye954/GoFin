@@ -37,6 +37,7 @@ function getNewYorkTime() {
 }
 
 // 通用股票数据获取函数（带缓存和错误处理）
+// 通用股票数据获取函数（带缓存和错误处理）
 async function fetchStockData(ticker, isETF = false) {
   const cacheKey = isETF ? `etf:${ticker}` : `stock:${ticker}`;
   const cachedData = cache.get(cacheKey);
@@ -79,7 +80,9 @@ async function fetchStockData(ticker, isETF = false) {
     }
 
     // 股票数据格式（详细信息）
-    const volume = data.indicators.quote[0].volume.pop();
+    // 提取成交量数据，添加防御性检查
+    const volumeData = data.indicators.quote[0].volume;
+    const volume = volumeData ? volumeData.pop() : 0;
     
     // 提取可能缺失的财务指标
     const peRatio = meta.trailingPE ?? meta.forwardPE ?? 'N/A';
