@@ -178,6 +178,17 @@
               </tbody>
             </table>
           </div>
+          
+          <!-- 分页控件 -->
+          <div class="flex justify-between items-center mt-4" id="pagination" style="display: none;">
+            <div class="text-gray-500 text-sm">
+              第 <span id="currentPageInfo">1</span> 页 / 共 <span id="totalPagesInfo">0</span> 页
+            </div>
+            <div class="flex space-x-2">
+              <button id="prevPage" class="btn-secondary text-sm px-3 py-1">上一页</button>
+              <button id="nextPage" class="btn-secondary text-sm px-3 py-1">下一页</button>
+            </div>
+          </div>
         </div>
       </section>
   </main>
@@ -249,6 +260,12 @@
   </footer>
 
   <script>
+    // 分页状态变量
+    let currentPage = 1;      // 当前页（从1开始）
+    const pageSize = 10;      // 每页显示条数
+    let totalPages = 0;       // 总页数
+    let sortedStocks = [];    // 排序后的数据（用于分页截取）
+
     // 设置导航栏高亮
     function setActiveNav() {
       const currentPath = window.location.pathname;
@@ -416,35 +433,69 @@
         document.getElementById('update-time').textContent = '更新时间: 加载失败';
       }
     }
-    // 加载市场趋势数据
+    
+    // 更新分页控件状态
+    function updatePagination() {
+      const paginationDiv = document.getElementById('pagination');
+      if (!paginationDiv) return;
+
+      // 更新页码显示
+      document.getElementById('currentPageInfo').textContent = currentPage;
+      document.getElementById('totalPagesInfo').textContent = totalPages;
+
+      // 禁用按钮（边界处理）
+      const prevBtn = document.getElementById('prevPage');
+      const nextBtn = document.getElementById('nextPage');
+      prevBtn.disabled = currentPage === 1;
+      nextBtn.disabled = currentPage === totalPages;
+
+      // 显示/隐藏分页控件（无数据或不足一页时隐藏）
+      paginationDiv.style.display = totalPages > 1 ? 'flex' : 'none';
+    }
+
+    // 加载市场趋势数据（带分页）
     async function loadMarketTrends(sortBy = 'ticker') {
       try {
-        // 修改请求地址
+        // 获取原始数据
         const response = await fetch('http://localhost:3001/api/quote1/all');
         const stocks = await response.json();
         
         // 排序数据
-        const sortedStocks = [...stocks].sort((a, b) => {
+        sortedStocks = [...stocks].sort((a, b) => {
           if (sortBy === 'price') return b.price - a.price;
           if (sortBy === 'changePercent') return b.changePercent - a.changePercent;
           return a.ticker.localeCompare(b.ticker);
         });
         
+        // 计算分页参数
+        const totalRecords = sortedStocks.length;
+        totalPages = Math.ceil(totalRecords / pageSize); // 总页数
+        currentPage = Math.min(currentPage, totalPages); // 防止页码越界（如果当前页大于总页数，调整为最后一页）
+        
+        // 截取当前页数据
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = Math.min(startIndex + pageSize, totalRecords);
+        const currentPageStocks = sortedStocks.slice(startIndex, endIndex);
+        
+        // 渲染表格
         const tableBody = document.querySelector('#market-trends-table tbody');
         tableBody.innerHTML = '';
         
-        if (sortedStocks.length === 0) {
+        if (currentPageStocks.length === 0) {
           tableBody.innerHTML = `
             <tr>
               <td colspan="6" class="py-4 text-center text-gray-500">暂无数据</td>
             </tr>
           `;
+          updatePagination(); // 无数据时仍需更新分页控件状态
           return;
         }
 
+        // 获取收藏列表
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
         
-        sortedStocks.forEach(stock => {
+        // 渲染当前页数据
+        currentPageStocks.forEach(stock => {
           const changeClass = stock.changePercent >= 0 ? 'text-success' : 'text-danger';
           const changeIcon = stock.changePercent >= 0 ? 'fa-caret-up' : 'fa-caret-down';
           const isFavorite = favorites.some(fav => fav.symbol === stock.ticker);
@@ -467,6 +518,9 @@
             </tr>
           `;
         });
+
+        // 更新分页控件
+        updatePagination();
 
         // 添加爱心按钮点击事件
         document.querySelectorAll('.add-to-favorites').forEach(btn => {
@@ -496,13 +550,14 @@
           });
         });
       } catch (error) {
-        // console.error('Error loading market trends:', error);
-        // const tableBody = document.querySelector('#market-trends-table tbody');
-        // tableBody.innerHTML = `
-        //   <tr>
-        //     <td colspan="5" class="py-4 text-center text-danger">加载数据失败: ${error.message}</td>
-        //   </tr>
-        // `;
+        console.error('Error loading market trends:', error);
+        const tableBody = document.querySelector('#market-trends-table tbody');
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="6" class="py-4 text-center text-danger">加载数据失败: ${error.message}</td>
+          </tr>
+        `;
+        updatePagination(); // 错误时仍需更新分页控件状态
       }
     }
 
@@ -531,14 +586,30 @@
         loadMarketTrends(document.getElementById('sort-select').value);
       });
       
-      // 添加排序选择事件
+      // 添加排序选择事件（排序时重置为第1页）
       document.getElementById('sort-select').addEventListener('change', (e) => {
+        currentPage = 1; // 重置页码
         loadMarketTrends(e.target.value);
+      });
+      
+      // 分页按钮事件
+      document.getElementById('prevPage').addEventListener('click', () => {
+        if (currentPage > 1) {
+          currentPage--;
+          loadMarketTrends(document.getElementById('sort-select').value);
+        }
+      });
+      
+      document.getElementById('nextPage').addEventListener('click', () => {
+        if (currentPage < totalPages) {
+          currentPage++;
+          loadMarketTrends(document.getElementById('sort-select').value);
+        }
       });
 
       // 监听 storage 事件，当 localStorage 变化时更新页面
       window.addEventListener('storage', () => {
-        loadMarketTrends();
+        loadMarketTrends(document.getElementById('sort-select').value);
       });
     });
   </script>
