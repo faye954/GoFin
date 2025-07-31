@@ -1,14 +1,20 @@
-
-const mockStocks = [
-    { symbol: 'AAPL', name: '苹果公司', price: 175.48, change_percent: 0.56, is_favorite: true },
-    { symbol: 'MSFT', name: '微软公司', price: 330.12, change_percent: -0.23, is_favorite: true },
-    { symbol: 'GOOGL', name: '谷歌公司', price: 125.89, change_percent: 1.23, is_favorite: true },
-];
+const stockTypeStyles = {
+    '科技': 'bg-blue-100 text-blue-800',
+    '金融': 'bg-green-100 text-green-800',
+    '电商': 'bg-purple-100 text-purple-800',
+    '医疗': 'bg-pink-100 text-pink-800',
+    '能源': 'bg-yellow-100 text-yellow-800',
+    '工业': 'bg-orange-100 text-orange-800',
+    '消费': 'bg-indigo-100 text-indigo-800',
+    '默认': 'bg-gray-100 text-gray-800'
+};
 
 // 股票行模板
 function createFavoriteRow(stock) {
     const changeClass = stock.change_percent >= 0 ? 'text-success' : 'text-danger';
     const changeIcon = stock.change_percent >= 0 ? 'fa-caret-up' : 'fa-caret-down';
+    const industry = stockIndustries[stock.symbol] || '未知';
+    const typeStyle = stockTypeStyles[industry] || stockTypeStyles['默认'];
 
     return `
                 <tr class="border-b border-gray-200 hover:bg-gray-50">
@@ -19,6 +25,11 @@ function createFavoriteRow(stock) {
                         </div>
                     </td>
                     <td class="py-3 px-2">${stock.name}</td>
+                    <td class="py-3 px-2">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium ${typeStyle}">
+                            ${industry}
+                        </span>
+                    </td>
                     <td class="py-3 px-2">¥${stock.price.toFixed(2)}</td>
                     <td class="py-3 px-2 ${changeClass}">
                         <i class="fa ${changeIcon} mr-1"></i> ${Math.abs(stock.change_percent).toFixed(2)}%

@@ -328,8 +328,6 @@ router.get('/api/portfolio/:id', async (req, res) => {
 router.put('/api/portfolio/:id', async (req, res) => {
     try {
         const portfolioId = req.params.id;
-        console.log('Updating portfolio ID:', portfolioId);
-        console.log('Request body:', req.body);
         const { name, stocks } = req.body;
         
         const connection = await pool.getConnection();

@@ -151,9 +151,9 @@
                 <i class="fa fa-refresh mr-1"></i> 刷新
               </button>
               <select id="sort-select" class="border border-gray-200 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                <option value="changePercent">按涨跌幅排序</option>
                 <option value="ticker">按代码排序</option>
                 <option value="price">按价格排序</option>
-                <option value="changePercent">按涨跌幅排序</option>
               </select>
             </div>
           </div>
@@ -164,6 +164,7 @@
                 <tr class="border-b border-gray-200">
                   <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">代码</th>
                   <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">名称</th>
+                  <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">行业</th>
                   <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">价格</th>
                   <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">涨跌幅</th>
                   <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">成交量</th>
@@ -259,6 +260,7 @@
     </div>
   </footer>
 
+  <script src="stockIndustries.js"></script>
   <script>
     // 分页状态变量
     let currentPage = 1;      // 当前页（从1开始）
@@ -304,7 +306,7 @@
           
           <div class="flex justify-between items-end">
             <div>
-              <p class="text-2xl font-bold">¥${stock.price.toFixed(2)}</p>
+              <p class="text-2xl font-bold">${stock.price.toFixed(2)}</p>
               <p class="${changeClass} flex items-center text-sm mt-1">
                 <i class="fa ${changeIcon} mr-1"></i> ${Math.abs(stock.change_percent).toFixed(2)}%
               </p>
@@ -327,7 +329,7 @@
         <tr class="border-b border-gray-100 hover:bg-gray-50">
           <td class="py-3 text-sm font-medium">${stock.symbol}</td>
           <td class="py-3 text-sm">${stock.name}</td>
-          <td class="py-3 text-sm">¥${stock.price.toFixed(2)}</td>
+          <td class="py-3 text-sm">${stock.price.toFixed(2)}</td>
           <td class="py-3 text-sm ${changeClass}">
             <i class="fa ${changeIcon} mr-1"></i> ${changeValue.toFixed(2)}%
           </td>
@@ -454,7 +456,7 @@
     }
 
     // 加载市场趋势数据（带分页）
-    async function loadMarketTrends(sortBy = 'ticker') {
+    async function loadMarketTrends(sortBy = 'changePercent') {
       try {
         // 获取原始数据
         const response = await fetch('http://localhost:3001/api/quote1/all');
@@ -463,8 +465,8 @@
         // 排序数据
         sortedStocks = [...stocks].sort((a, b) => {
           if (sortBy === 'price') return b.price - a.price;
-          if (sortBy === 'changePercent') return b.changePercent - a.changePercent;
-          return a.ticker.localeCompare(b.ticker);
+          if (sortBy === 'ticker') return a.ticker.localeCompare(b.ticker);
+          return b.changePercent - a.changePercent;
         });
         
         // 计算分页参数
@@ -494,8 +496,21 @@
         // 获取收藏列表
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
         
+        // 定义不同类型对应的颜色
+        const typeColors = {
+          "科技": { bg: "bg-blue-100", text: "text-blue-800" },
+          "金融": { bg: "bg-green-100", text: "text-green-800" },
+          "消费": { bg: "bg-purple-100", text: "text-purple-800" },
+          "医疗": { bg: "bg-pink-100", text: "text-pink-800" },
+          "能源": { bg: "bg-yellow-100", text: "text-yellow-800" },
+          "工业": { bg: "bg-orange-100", text: "text-orange-800" },
+          "未知": { bg: "bg-gray-100", text: "text-gray-800" }
+        };
         // 渲染当前页数据
         currentPageStocks.forEach(stock => {
+          const stockType = stockIndustries[stock.ticker] || "未知";
+          const typeColor = typeColors[stockType] || typeColors["未知"];
+
           const changeClass = stock.changePercent >= 0 ? 'text-success' : 'text-danger';
           const changeIcon = stock.changePercent >= 0 ? 'fa-caret-up' : 'fa-caret-down';
           const isFavorite = favorites.some(fav => fav.symbol === stock.ticker);
@@ -505,7 +520,10 @@
             <tr class="border-b border-gray-100 hover:bg-gray-50">
               <td class="py-3 px-4 text-sm font-medium">${stock.ticker}</td>
               <td class="py-3 px-4 text-sm">${stock.shortName || stock.longName}</td>
-              <td class="py-3 px-4 text-sm">¥${stock.price.toFixed(2)}</td>
+              <td class="py-3 px-4 text-sm">
+                <span class="px-2 py-1 ${typeColor.bg} ${typeColor.text} rounded-full text-xs">${stockType}</span>
+              </td>
+              <td class="py-3 px-4 text-sm">${stock.price.toFixed(2)}</td>
               <td class="py-3 px-4 text-sm ${changeClass}">
                 <i class="fa ${changeIcon} mr-1"></i> ${Math.abs(stock.changePercent).toFixed(2)}%
               </td>

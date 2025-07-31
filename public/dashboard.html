@@ -98,31 +98,31 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div class="bg-blue-50 rounded-lg p-4">
           <div class="flex justify-between items-center mb-2">
-            <h3 class="font-semibold">投资组合 1</h3>
+            <h3 class="font-semibold">--</h3>
             <span id="portfolio1-return" class="text-success flex items-center">
             </span>
           </div>
           <div class="mt-3 flex flex-wrap gap-2">
-            <span class="bg-blue-100 text-primary text-xs px-2 py-1 rounded-full">AAPL</span>
+            <!-- <span class="bg-blue-100 text-primary text-xs px-2 py-1 rounded-full">--</span>
             <span class="bg-blue-100 text-primary text-xs px-2 py-1 rounded-full">MSFT</span>
             <span class="bg-blue-100 text-primary text-xs px-2 py-1 rounded-full">GOOGL</span>
             <span class="bg-blue-100 text-primary text-xs px-2 py-1 rounded-full">AMZN</span>
-            <span class="bg-blue-100 text-primary text-xs px-2 py-1 rounded-full">TSLA</span>
+            <span class="bg-blue-100 text-primary text-xs px-2 py-1 rounded-full">TSLA</span> -->
           </div>
         </div>
 
         <div class="bg-green-50 rounded-lg p-4">
           <div class="flex justify-between items-center mb-2">
-            <h3 class="font-semibold">投资组合 2</h3>
+            <h3 class="font-semibold">--</h3>
             <span id="portfolio2-return" class="text-success flex items-center">
             </span>
           </div>
           <div class="mt-3 flex flex-wrap gap-2">
-            <span class="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full">JPM</span>
+            <!-- <span class="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full">JPM</span>
             <span class="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full">BAC</span>
             <span class="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full">META</span>
             <span class="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full">NVDA</span>
-            <span class="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full">AAPL</span>
+            <span class="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full">AAPL</span> -->
           </div>
         </div>
       </div>
@@ -131,7 +131,7 @@
         <div class="flex items-center">
           <span class="text-sm text-gray-500 mr-2">时间范围:</span>
           <div class="flex rounded-lg overflow-hidden border border-gray-200">
-            <button class="px-3 py-1 text-sm hover:bg-gray-100">1个月</button>
+            <button class="px-3 py-1 text-sm bg-primary text-white">1个月</button>
           </div>
         </div>
 
@@ -431,27 +431,27 @@
 
   <script>
     let BENCHMARK_RETURN = 0;
-async function fetchBenchmarkReturn() {
-  try {
-    const res = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=1mo&interval=1d');
-    const data = await res.json();
-    if (!data.chart || !data.chart.result || !data.chart.result[0]) return 0;
-    const result = data.chart.result[0];
-    const closes = result.indicators.adjclose[0].adjclose;
-    const first = closes[0];
-    const last = closes[closes.length - 1];
-    return ((last - first) / first * 100);
-  } catch (e) {
-    return 0;
-  }
-}
+    async function fetchBenchmarkReturn() {
+      try {
+        const res = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=1mo&interval=1d');
+        const data = await res.json();
+        if (!data.chart || !data.chart.result || !data.chart.result[0]) return 0;
+        const result = data.chart.result[0];
+        const closes = result.indicators.adjclose[0].adjclose;
+        const first = closes[0];
+        const last = closes[closes.length - 1];
+        return ((last - first) / first * 100);
+      } catch (e) {
+        return 0;
+      }
+    }
 
-document.addEventListener('DOMContentLoaded', async () => {
-  BENCHMARK_RETURN = await fetchBenchmarkReturn();
-  loadPortfolioTags();
-  loadPortfolioData();
-  loadStockMetrics();
-});
+    document.addEventListener('DOMContentLoaded', async () => {
+      BENCHMARK_RETURN = await fetchBenchmarkReturn();
+      loadPortfolioTags();
+      loadPortfolioData();
+      loadStockMetrics();
+    });
 
     // 初始化图表
     function initCharts(data) {
@@ -530,17 +530,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   
       // ---- 资产配置（行业分布，需自行适配你的 stockIndustries 数据）----
       function calculateIndustryDistribution(stockArr) {
-        // 假设有全局变量 stockIndustries，如 {AAPL: '科技', JPM: '金融', ...}
         // 先读取前端本地或后端接口 stockIndustries，或补全
-        const distribution = { "科技": 0, "金融": 0, "消费": 0, "医疗": 0, "能源": 0, "工业": 0, "其他": 0 };
+        const distribution = { "科技": 0, "金融": 0, "医疗": 0, "能源": 0, "工业": 0, "其他": 0 };
         let total = 0;
-        stockArr.forEach(s => {
-          const industry = (window.stockIndustries && window.stockIndustries[s.symbol]) || "其他";
-          distribution[industry] += Number(s.proportion);
-          total += Number(s.proportion);
+        // 累加各行业的权重
+        stockArr.forEach(stock => {
+          // 从stockIndustries对象获取行业分类，未找到的归类为"其他"
+          const industry = stockIndustries[stock.symbol] || "其他";
+          // 将字符串比例转换为数字并累加
+          distribution[industry] += parseFloat(stock.proportion);
         });
-        // 比例归一化到百分比
-        Object.keys(distribution).forEach(k => distribution[k] = total ? (distribution[k] / total * 100).toFixed(2) : 0);
         return distribution;
       }
       // 使用后端返回的股票和权重数据
@@ -599,104 +598,104 @@ document.addEventListener('DOMContentLoaded', async () => {
   
     // 更新统计指标数据
     function updateMetrics(metrics) {
-  // -------- 投资组合1 --------
-  document.getElementById('p1-totalReturn').textContent = metrics.portfolio1.totalReturn;
-  document.getElementById('p1-volatility').textContent = metrics.portfolio1.volatility;
-  document.getElementById('p1-sharpe').textContent = metrics.portfolio1.sharpe;
-  document.getElementById('p1-maxDrawdown').textContent = metrics.portfolio1.maxDrawdown;
+    // -------- 投资组合1 --------
+      document.getElementById('p1-totalReturn').textContent = metrics.portfolio1.totalReturn;
+      document.getElementById('p1-volatility').textContent = metrics.portfolio1.volatility;
+      document.getElementById('p1-sharpe').textContent = metrics.portfolio1.sharpe;
+      document.getElementById('p1-maxDrawdown').textContent = metrics.portfolio1.maxDrawdown;
 
-  // ---- 总收益率优于市场 or 逊于市场 ----
-  let p1Total = parseFloat(metrics.portfolio1.totalReturn);
-  let status1 = p1Total > BENCHMARK_RETURN * 100 ? "优于市场" : "逊于市场";
-  let status1Color = p1Total > BENCHMARK_RETURN * 100 ? "text-success" : "text-danger";
-  let p1ReturnIcon = p1Total > BENCHMARK_RETURN * 100 ? "caret-up" : "caret-down";
-  document.getElementById('portfolio1-return').innerHTML =
-    `<i class="fa fa-${p1ReturnIcon} ${status1Color} mr-1"></i>
-     <span class="${status1Color}">${metrics.portfolio1.totalReturn}</span>`;
+      // ---- 总收益率优于市场 or 逊于市场 ----
+      let p1Total = parseFloat(metrics.portfolio1.totalReturn);
+      let status1 = p1Total > BENCHMARK_RETURN * 100 ? "优于市场" : "逊于市场";
+      let status1Color = p1Total > BENCHMARK_RETURN * 100 ? "text-success" : "text-danger";
+      let p1ReturnIcon = p1Total > BENCHMARK_RETURN * 100 ? "caret-up" : "caret-down";
+      document.getElementById('portfolio1-return').innerHTML =
+        `<i class="fa fa-${p1ReturnIcon} ${status1Color} mr-1"></i>
+        <span class="${status1Color}">${metrics.portfolio1.totalReturn}</span>`;
 
-  // ---- 风险指标 ----
-  let p1Vol = parseFloat(metrics.portfolio1.volatility);
-  let volLevel1, volLevelColor1, volIcon1;
-  if (p1Vol < 10) {
-    volLevel1 = '低风险'; volLevelColor1 = 'text-success'; volIcon1 = 'fa-check-circle';
-  } else if (p1Vol < 20) {
-    volLevel1 = '中等风险'; volLevelColor1 = 'text-warning'; volIcon1 = 'fa-exclamation-circle';
-  } else {
-    volLevel1 = '高风险'; volLevelColor1 = 'text-danger'; volIcon1 = 'fa-times-circle';
-  }
-  document.getElementById('p1-volatility').nextElementSibling.innerHTML =
-    `<i class="fa ${volIcon1} mr-1"></i> ${volLevel1}`;
-  document.getElementById('p1-volatility').nextElementSibling.className =
-    `${volLevelColor1} text-sm flex items-center mt-1`;
+      // ---- 风险指标 ----
+      let p1Vol = parseFloat(metrics.portfolio1.volatility);
+      let volLevel1, volLevelColor1, volIcon1;
+      if (p1Vol < 10) {
+        volLevel1 = '低风险'; volLevelColor1 = 'text-success'; volIcon1 = 'fa-check-circle';
+      } else if (p1Vol < 20) {
+        volLevel1 = '中等风险'; volLevelColor1 = 'text-warning'; volIcon1 = 'fa-exclamation-circle';
+      } else {
+        volLevel1 = '高风险'; volLevelColor1 = 'text-danger'; volIcon1 = 'fa-times-circle';
+      }
+      document.getElementById('p1-volatility').nextElementSibling.innerHTML =
+        `<i class="fa ${volIcon1} mr-1"></i> ${volLevel1}`;
+      document.getElementById('p1-volatility').nextElementSibling.className =
+        `${volLevelColor1} text-sm flex items-center mt-1`;
 
-  // ---- 夏普比率 ----
-  let p1Sharpe = parseFloat(metrics.portfolio1.sharpe);
-  let sharpeLevel1, sharpeColor1, sharpeIcon1;
-  if (p1Sharpe >= 1) {
-    sharpeLevel1 = '优秀'; sharpeColor1 = 'text-success'; sharpeIcon1 = 'fa-trophy';
-  } else if (p1Sharpe >= 0.5) {
-    sharpeLevel1 = '良好'; sharpeColor1 = 'text-success'; sharpeIcon1 = 'fa-check-circle';
-  } else if (p1Sharpe >= 0) {
-    sharpeLevel1 = '一般'; sharpeColor1 = 'text-warning'; sharpeIcon1 = 'fa-exclamation-circle';
-  } else {
-    sharpeLevel1 = '较差'; sharpeColor1 = 'text-danger'; sharpeIcon1 = 'fa-times-circle';
-  }
-  document.getElementById('p1-sharpe').nextElementSibling.innerHTML =
-    `<i class="fa ${sharpeIcon1} mr-1"></i> ${sharpeLevel1}`;
-  document.getElementById('p1-sharpe').nextElementSibling.className =
-    `${sharpeColor1} text-sm flex items-center mt-1`;
+      // ---- 夏普比率 ----
+      let p1Sharpe = parseFloat(metrics.portfolio1.sharpe);
+      let sharpeLevel1, sharpeColor1, sharpeIcon1;
+      if (p1Sharpe >= 1) {
+        sharpeLevel1 = '优秀'; sharpeColor1 = 'text-success'; sharpeIcon1 = 'fa-trophy';
+      } else if (p1Sharpe >= 0.5) {
+        sharpeLevel1 = '良好'; sharpeColor1 = 'text-success'; sharpeIcon1 = 'fa-check-circle';
+      } else if (p1Sharpe >= 0) {
+        sharpeLevel1 = '一般'; sharpeColor1 = 'text-warning'; sharpeIcon1 = 'fa-exclamation-circle';
+      } else {
+        sharpeLevel1 = '较差'; sharpeColor1 = 'text-danger'; sharpeIcon1 = 'fa-times-circle';
+      }
+      document.getElementById('p1-sharpe').nextElementSibling.innerHTML =
+        `<i class="fa ${sharpeIcon1} mr-1"></i> ${sharpeLevel1}`;
+      document.getElementById('p1-sharpe').nextElementSibling.className =
+        `${sharpeColor1} text-sm flex items-center mt-1`;
 
-  // -------- 投资组合2 --------
-  document.getElementById('p2-totalReturn').textContent = metrics.portfolio2.totalReturn;
-  document.getElementById('p2-volatility').textContent = metrics.portfolio2.volatility;
-  document.getElementById('p2-sharpe').textContent = metrics.portfolio2.sharpe;
-  document.getElementById('p2-maxDrawdown').textContent = metrics.portfolio2.maxDrawdown;
+      // -------- 投资组合2 --------
+      document.getElementById('p2-totalReturn').textContent = metrics.portfolio2.totalReturn;
+      document.getElementById('p2-volatility').textContent = metrics.portfolio2.volatility;
+      document.getElementById('p2-sharpe').textContent = metrics.portfolio2.sharpe;
+      document.getElementById('p2-maxDrawdown').textContent = metrics.portfolio2.maxDrawdown;
 
-  // 总收益率描述
-  let p2Total = parseFloat(metrics.portfolio2.totalReturn);
-  let status2 = p2Total > BENCHMARK_RETURN * 100 ? "优于市场" : "逊于市场";
-  let status2Color = p2Total > BENCHMARK_RETURN * 100 ? "text-success" : "text-danger";
-  let p2ReturnIcon = p2Total > BENCHMARK_RETURN * 100 ? "caret-up" : "caret-down";
-  document.getElementById('p2-return-trend').innerHTML =
-    `<i class="fa fa-${p2ReturnIcon} mr-1"></i> ${status2}`;
-  document.getElementById('p2-return-trend').className =
-    `${status2Color} text-sm flex items-center mt-1`;
-  document.getElementById('portfolio2-return').innerHTML =
-    `<i class="fa fa-${p2ReturnIcon} ${status2Color} mr-1"></i>
-     <span class="${status2Color}">${metrics.portfolio2.totalReturn}</span>`;
+      // 总收益率描述
+      let p2Total = parseFloat(metrics.portfolio2.totalReturn);
+      let status2 = p2Total > BENCHMARK_RETURN * 100 ? "优于市场" : "逊于市场";
+      let status2Color = p2Total > BENCHMARK_RETURN * 100 ? "text-success" : "text-danger";
+      let p2ReturnIcon = p2Total > BENCHMARK_RETURN * 100 ? "caret-up" : "caret-down";
+      document.getElementById('p2-return-trend').innerHTML =
+        `<i class="fa fa-${p2ReturnIcon} mr-1"></i> ${status2}`;
+      document.getElementById('p2-return-trend').className =
+        `${status2Color} text-sm flex items-center mt-1`;
+      document.getElementById('portfolio2-return').innerHTML =
+        `<i class="fa fa-${p2ReturnIcon} ${status2Color} mr-1"></i>
+        <span class="${status2Color}">${metrics.portfolio2.totalReturn}</span>`;
 
-  // 风险指标
-  let p2Vol = parseFloat(metrics.portfolio2.volatility);
-  let volLevel2, volLevelColor2, volIcon2;
-  if (p2Vol < 10) {
-    volLevel2 = '低风险'; volLevelColor2 = 'text-success'; volIcon2 = 'fa-check-circle';
-  } else if (p2Vol < 20) {
-    volLevel2 = '中等风险'; volLevelColor2 = 'text-warning'; volIcon2 = 'fa-exclamation-circle';
-  } else {
-    volLevel2 = '高风险'; volLevelColor2 = 'text-danger'; volIcon2 = 'fa-times-circle';
-  }
-  document.getElementById('p2-volatility').nextElementSibling.innerHTML =
-    `<i class="fa ${volIcon2} mr-1"></i> ${volLevel2}`;
-  document.getElementById('p2-volatility').nextElementSibling.className =
-    `${volLevelColor2} text-sm flex items-center mt-1`;
+      // 风险指标
+      let p2Vol = parseFloat(metrics.portfolio2.volatility);
+      let volLevel2, volLevelColor2, volIcon2;
+      if (p2Vol < 10) {
+        volLevel2 = '低风险'; volLevelColor2 = 'text-success'; volIcon2 = 'fa-check-circle';
+      } else if (p2Vol < 20) {
+        volLevel2 = '中等风险'; volLevelColor2 = 'text-warning'; volIcon2 = 'fa-exclamation-circle';
+      } else {
+        volLevel2 = '高风险'; volLevelColor2 = 'text-danger'; volIcon2 = 'fa-times-circle';
+      }
+      document.getElementById('p2-volatility').nextElementSibling.innerHTML =
+        `<i class="fa ${volIcon2} mr-1"></i> ${volLevel2}`;
+      document.getElementById('p2-volatility').nextElementSibling.className =
+        `${volLevelColor2} text-sm flex items-center mt-1`;
 
-  // 夏普比率
-  let p2Sharpe = parseFloat(metrics.portfolio2.sharpe);
-  let sharpeLevel2, sharpeColor2, sharpeIcon2;
-  if (p2Sharpe >= 1) {
-    sharpeLevel2 = '优秀'; sharpeColor2 = 'text-success'; sharpeIcon2 = 'fa-trophy';
-  } else if (p2Sharpe >= 0.5) {
-    sharpeLevel2 = '良好'; sharpeColor2 = 'text-success'; sharpeIcon2 = 'fa-check-circle';
-  } else if (p2Sharpe >= 0) {
-    sharpeLevel2 = '一般'; sharpeColor2 = 'text-warning'; sharpeIcon2 = 'fa-exclamation-circle';
-  } else {
-    sharpeLevel2 = '较差'; sharpeColor2 = 'text-danger'; sharpeIcon2 = 'fa-times-circle';
-  }
-  document.getElementById('p2-sharpe-desc').innerHTML =
-    `<i class="fa ${sharpeIcon2} mr-1"></i> ${sharpeLevel2}`;
-  document.getElementById('p2-sharpe-desc').className =
-    `${sharpeColor2} text-sm flex items-center mt-1`;
-}
+      // 夏普比率
+      let p2Sharpe = parseFloat(metrics.portfolio2.sharpe);
+      let sharpeLevel2, sharpeColor2, sharpeIcon2;
+      if (p2Sharpe >= 1) {
+        sharpeLevel2 = '优秀'; sharpeColor2 = 'text-success'; sharpeIcon2 = 'fa-trophy';
+      } else if (p2Sharpe >= 0.5) {
+        sharpeLevel2 = '良好'; sharpeColor2 = 'text-success'; sharpeIcon2 = 'fa-check-circle';
+      } else if (p2Sharpe >= 0) {
+        sharpeLevel2 = '一般'; sharpeColor2 = 'text-warning'; sharpeIcon2 = 'fa-exclamation-circle';
+      } else {
+        sharpeLevel2 = '较差'; sharpeColor2 = 'text-danger'; sharpeIcon2 = 'fa-times-circle';
+      }
+      document.getElementById('p2-sharpe-desc').innerHTML =
+        `<i class="fa ${sharpeIcon2} mr-1"></i> ${sharpeLevel2}`;
+      document.getElementById('p2-sharpe-desc').className =
+        `${sharpeColor2} text-sm flex items-center mt-1`;
+    }
 
   
     // 组合顶部名称和成分股标签，动态渲染
@@ -719,8 +718,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         );
   
         // 动态渲染组合名称
-        document.querySelector('.bg-blue-50 h3').textContent = data.names[0] || '投资组合 1';
-        document.querySelector('.bg-green-50 h3').textContent = data.names[1] || '投资组合 2';
+        document.querySelector('.bg-blue-50 h3').textContent = '投资组合1: '+data.names[0] || '投资组合 1';
+        document.querySelector('.bg-green-50 h3').textContent = '投资组合2: ' + data.names[1] || '投资组合 2';
       } catch (err) {
         console.error('渲染组合标签失败', err);
       }
