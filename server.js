@@ -14,6 +14,8 @@ app.use(cors());
 app.use(express.json());
 // 静态文件服务（public目录）
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public'))
+
 // 图片静态服务
 app.use('/image', express.static('image'));
 app.use('/api', historyRoutes);

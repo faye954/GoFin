@@ -16,7 +16,7 @@ const pool = mysql.createPool({
   host: `localhost`,
   port: 3306,
   user: 'root',
-  password: 'lyt20010621',
+  password: '123456',
   database: 'gofin_portfolios'
 });
 
@@ -241,6 +241,125 @@ router.get('/api/portfolio/all', async (req, res) => {
     } catch (err) {
         console.error('? Portfolio API error:', err.message);
         res.status(500).json({ error: 'Failed to get portfolios' });
+    }
+});
+
+
+// 删除投资组合
+router.delete('/api/portfolio/:id', async (req, res) => {
+    try {
+        const portfolioId = req.params.id;
+        const connection = await pool.getConnection();
+        await connection.beginTransaction();
+        
+        // 先删除关联的股票
+        await connection.execute('DELETE FROM portfolio_stocks WHERE portfolio_id = ?', [portfolioId]);
+        
+        // 再删除投资组合
+        await connection.execute('DELETE FROM portfolios WHERE id = ?', [portfolioId]);
+        
+        await connection.commit();
+        connection.release();
+        res.json({ message: '投资组合删除成功' });
+    } catch (err) {
+        console.error('? Delete portfolio error:', err.message);
+        res.status(500).json({ error: 'Failed to delete portfolio' });
+    }
+});
+
+router.get('/api/portfolio/:id', async (req, res) => {
+    try {
+        const portfolioId = req.params.id;
+        const connection = await pool.getConnection();
+        
+        // 获取投资组合基本信息
+        const [portfolioResult] = await connection.execute('SELECT * FROM portfolios WHERE id = ?', [portfolioId]);
+        if (portfolioResult.length === 0) {
+            connection.release();
+            return res.status(404).json({ error: 'Portfolio not found' });
+        }
+        
+        // 获取投资组合包含的股票
+        const [stocks] = await connection.execute('SELECT stock_symbol, proportion FROM portfolio_stocks WHERE portfolio_id = ?', [portfolioId]);
+        
+        // 获取股票数据
+        const stockDataPromises = stocks.map(stock => fetchStock(stock.stock_symbol));
+        const stockDataList = await Promise.all(stockDataPromises);
+        const validStockData = stockDataList.filter(Boolean);
+        
+        // 计算投资组合表现
+        let portfolioPerformance = null;
+        if (validStockData.length > 0) {
+            const { dates, data } = align(validStockData);
+            
+            // 创建权重映射
+            const weights = {};
+            stocks.forEach(stock => {
+                weights[stock.stock_symbol] = stock.proportion / 100; // 转换为小数
+            });
+            
+            // 计算价值和指标
+            const values = calcValue(data, weights, dates);
+            const metrics = calcMetrics(values);
+            
+            portfolioPerformance = {
+                dates,
+                values: values.map(v => Number(v.toFixed(2))),
+                metrics
+            };
+        }
+        
+        connection.release();
+        
+        res.json({
+            id: portfolioResult[0].id,
+            name: portfolioResult[0].name,
+            created_at: portfolioResult[0].created_at,
+            stocks,
+            performance: portfolioPerformance
+        });
+    } catch (err) {
+        console.error('? Get portfolio error:', err.message);
+        res.status(500).json({ error: 'Failed to get portfolio details' });
+    }
+});
+
+// 更新投资组合
+router.put('/api/portfolio/:id', async (req, res) => {
+    try {
+        const portfolioId = req.params.id;
+        console.log('Updating portfolio ID:', portfolioId);
+        console.log('Request body:', req.body);
+        const { name, stocks } = req.body;
+        
+        const connection = await pool.getConnection();
+        await connection.beginTransaction();
+        
+        // 更新投资组合名称
+        await connection.execute('UPDATE portfolios SET name = ? WHERE id = ?', [name, portfolioId]);
+        
+        // 先删除原有股票关联
+        await connection.execute('DELETE FROM portfolio_stocks WHERE portfolio_id = ?', [portfolioId]);
+        
+        // 添加新的股票关联
+        for (const stock of stocks) {
+            await connection.execute(
+                'INSERT INTO portfolio_stocks (portfolio_id, stock_symbol, proportion) VALUES (?, ?, ?)', 
+                [portfolioId, stock.stock_symbol, stock.proportion]
+            );
+        }
+        
+        await connection.commit();
+        connection.release();
+        res.json({ message: '投资组合更新成功' });
+    } catch (err) {
+        console.error('? Update portfolio error:', err.message);
+        // 发生错误时回滚事务
+        if (connection) {
+            await connection.rollback();
+            connection.release();
+        }
+        res.status(500).json({ error: 'Failed to update portfolio' });
     }
 });
 
