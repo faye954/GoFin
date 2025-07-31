@@ -178,29 +178,31 @@ async function loadFavoriteStocks() {
 }
 
 // 加载投资组合数据
+// 加载投资组合数据
 async function loadPortfolios() {
     try {
         const response = await fetch('/api/portfolio/all');
         const portfolios = await response.json();
         const container = document.getElementById('portfoliosContainer');
-
-        // 清空容器，保留"创建新投资组合"卡片
         const createNewCard = document.getElementById('createNewPortfolio');
-        container.innerHTML = '';
-        if (createNewCard) {
-            container.appendChild(createNewCard);
-        }
 
+        // 清空容器
+        container.innerHTML = '';
+
+        // 如果没有投资组合，显示"创建新投资组合"卡片
         if (portfolios.length === 0) {
+            if (createNewCard) {
+                container.appendChild(createNewCard);
+            }
             updateScrollIndicator('portfolios');
             return;
         }
 
-        // 添加投资组合卡片到容器，放在"创建新投资组合"卡片之前
+        // 有投资组合时，只显示投资组合卡片（不显示创建新组合卡片）
         portfolios.forEach(portfolio => {
             const portfolioCard = document.createElement('div');
             portfolioCard.innerHTML = createPortfolioCard(portfolio);
-            container.insertBefore(portfolioCard.firstElementChild, createNewCard);
+            container.appendChild(portfolioCard.firstElementChild);
         });
 
         // 添加删除投资组合事件
@@ -225,7 +227,6 @@ async function loadPortfolios() {
         document.querySelectorAll('.portfolio-card').forEach(card => {
             card.addEventListener('click', function () {
                 const id = this.dataset.id;
-                // viewPortfolio(id);
                 openEditPortfolioModal(id);
             });
         });
