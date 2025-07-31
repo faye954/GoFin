@@ -9,16 +9,15 @@ const RANGE = '1mo';
 const INTERVAL = '1d';
 const RISK_FREE_RATE_DAILY = 0.0001;
 
-// 第一组代码中 portfolio.js 的顶部
-const fs = require('fs').promises; // 关键：引入了 fs 模块
+const fs = require('fs').promises; // 仍可保留，防止其他地方引用
 
 // 创建数据库连接池
 const pool = mysql.createPool({
   host: `localhost`,
   port: 3306,
-  user: `root`,
-  password: `n3u3da!`,
-    database: 'gofin_portfolios'
+  user: 'root',
+  password: 'lyt20010621',
+  database: 'gofin_portfolios'
 });
 
 // 获取单个股票数据
@@ -103,6 +102,98 @@ function calcMetrics(values) {
     };
 }
 
+// ======================== 新增API ========================
+
+// 获取最新的两个投资组合及其成分和权重
+router.get('/api/portfolio/latest', async (req, res) => {
+    try {
+        const connection = await pool.getConnection();
+        // 查最新的两个组合
+        const [portfolios] = await connection.execute('SELECT * FROM portfolios ORDER BY created_at DESC LIMIT 2');
+        const results = [];
+
+        for (const portfolio of portfolios) {
+            const [stocks] = await connection.execute(
+                'SELECT stock_symbol, proportion FROM portfolio_stocks WHERE portfolio_id = ?', 
+                [portfolio.id]
+            );
+            results.push({
+                id: portfolio.id,
+                name: portfolio.name,
+                stocks: stocks.map(s => ({ symbol: s.stock_symbol, proportion: s.proportion }))
+            });
+        }
+        connection.release();
+        res.json(results);
+    } catch (err) {
+        res.status(500).json({ error: '数据库获取组合失败' });
+    }
+});
+
+// ======================== 修改后的对比API ========================
+
+// GET /api/portfolio/compare
+router.get('/api/portfolio/compare', async (req, res) => {
+    try {
+        const connection = await pool.getConnection();
+        // 查最新的两个组合
+        const [portfolios] = await connection.execute('SELECT * FROM portfolios ORDER BY created_at DESC LIMIT 2');
+        if (portfolios.length < 2) return res.status(400).json({ error: '组合数量不足2个' });
+
+        // 获取各自股票和权重
+        let allTickersSet = new Set();
+        let portfoliosWithStocks = [];
+        for (const p of portfolios) {
+            const [stocks] = await connection.execute(
+                'SELECT stock_symbol, proportion FROM portfolio_stocks WHERE portfolio_id = ?', 
+                [p.id]
+            );
+            portfoliosWithStocks.push(stocks);
+            stocks.forEach(s => allTickersSet.add(s.stock_symbol));
+        }
+        const allTickers = [...allTickersSet];
+
+        // 获取所有股票的历史数据
+        const stocksData = (await Promise.all(allTickers.map(fetchStock))).filter(Boolean);
+        const { dates, data } = align(stocksData);
+
+        // 按比例数组转为 {ticker: proportion}
+        function toWeightMap(list) {
+            const map = {};
+            let total = list.reduce((sum, s) => sum + Number(s.proportion), 0);
+            list.forEach(s => map[s.stock_symbol] = Number(s.proportion) / total);
+            return map;
+        }
+        const weights1 = toWeightMap(portfoliosWithStocks[0]);
+        const weights2 = toWeightMap(portfoliosWithStocks[1]);
+
+        // 计算收益和指标
+        const val1 = calcValue(data, weights1, dates);
+        const val2 = calcValue(data, weights2, dates);
+
+        const m1 = calcMetrics(val1);
+        const m2 = calcMetrics(val2);
+
+        res.json({
+            dates,
+            portfolio1: val1.map(v => Number(v.toFixed(2))),
+            portfolio2: val2.map(v => Number(v.toFixed(2))),
+            metrics: { portfolio1: m1, portfolio2: m2 },
+            names: [portfolios[0].name, portfolios[1].name],
+            stocks: [
+                portfoliosWithStocks[0].map(s => ({ symbol: s.stock_symbol, proportion: s.proportion })),
+                portfoliosWithStocks[1].map(s => ({ symbol: s.stock_symbol, proportion: s.proportion }))
+            ]
+        });
+        connection.release();
+    } catch (err) {
+        console.error('? Portfolio API error:', err.message);
+        res.status(500).json({ error: 'Failed to calculate metrics' });
+    }
+});
+
+// ======================== 其它已有API保留 ========================
+
 // 创建投资组合
 router.post('/api/portfolio/create', async (req, res) => {
     try {
@@ -150,41 +241,6 @@ router.get('/api/portfolio/all', async (req, res) => {
     } catch (err) {
         console.error('? Portfolio API error:', err.message);
         res.status(500).json({ error: 'Failed to get portfolios' });
-    }
-});
-
-// GET /api/portfolio/compare
-router.get('/api/portfolio/compare', async (req, res) => {
-    try {
-        const tickers = JSON.parse(await fs.readFile('./tickers.json', 'utf8'));
-        const portfolio1 = tickers.slice(0, 10);
-        const portfolio2 = tickers.slice(50, 60);
-        const all = [...new Set([...portfolio1, ...portfolio2])];
-
-        const stocks = (await Promise.all(all.map(fetchStock))).filter(Boolean);
-        const { dates, data } = align(stocks);
-
-        const getWeights = list => {
-            const w = {};
-            list.forEach(t => w[t] = 1 / list.length);
-            return w;
-        };
-
-        const val1 = calcValue(data, getWeights(portfolio1), dates);
-        const val2 = calcValue(data, getWeights(portfolio2), dates);
-
-        const m1 = calcMetrics(val1);
-        const m2 = calcMetrics(val2);
-
-        res.json({
-            dates,
-            portfolio1: val1.map(v => Number(v.toFixed(2))),
-            portfolio2: val2.map(v => Number(v.toFixed(2))),
-            metrics: { portfolio1: m1, portfolio2: m2 }
-        });
-    } catch (err) {
-        console.error('? Portfolio API error:', err.message);
-        res.status(500).json({ error: 'Failed to calculate metrics' });
     }
 });
 
