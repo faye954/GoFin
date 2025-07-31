@@ -9,7 +9,8 @@ const RANGE = '1mo';
 const INTERVAL = '1d';
 const RISK_FREE_RATE_DAILY = 0.0001;
 
-const fs = require('fs');
+// 第一组代码中 portfolio.js 的顶部
+const fs = require('fs').promises; // 关键：引入了 fs 模块
 
 // 创建数据库连接池
 const pool = mysql.createPool({
