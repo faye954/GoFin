@@ -30,7 +30,7 @@ function createFavoriteRow(stock) {
                             ${industry}
                         </span>
                     </td>
-                    <td class="py-3 px-2">¥${stock.price.toFixed(2)}</td>
+                    <td class="py-3 px-2">${stock.price.toFixed(2)}</td>
                     <td class="py-3 px-2 ${changeClass}">
                         <i class="fa ${changeIcon} mr-1"></i> ${Math.abs(stock.change_percent).toFixed(2)}%
                     </td>
@@ -73,9 +73,6 @@ function createPortfolioCard(portfolio) {
         <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer portfolio-card" data-id="${portfolio.id}">
           <div class="flex justify-between items-center">
             <h3 class="font-medium">${portfolio.name}</h3>
-            <span class="${changeClass} text-sm flex items-center">
-              <i class="fa ${changeIcon} mr-1"></i> ${Math.abs(randomChange)}%
-            </span>
           </div>
           <p class="text-gray-500 text-sm mt-1">包含 ${portfolio.stocks.length} 支股票</p>
           <div class="mt-3 flex flex-wrap gap-2">

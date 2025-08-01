@@ -73,7 +73,7 @@
         <a href="index.html" id="nav-home" class="font-medium text-dark hover:text-primary transition-colors">首页</a>
         <a href="favorites.html" id="nav-favorites"
           class="font-medium text-dark hover:text-primary transition-colors">自选</a>
-        <a href="dashboard.html" id="nav-home" class="font-medium text-primary border-b-2 border-primary pb-1">投资组合</a>
+        <a href="dashboard.html" id="nav-dashboard" class="font-medium text-primary border-b-2 border-primary pb-1">投资组合</a>
       </nav>
 
       <div class="flex items-center space-x-4">
@@ -103,11 +103,6 @@
             </span>
           </div>
           <div class="mt-3 flex flex-wrap gap-2">
-            <!-- <span class="bg-blue-100 text-primary text-xs px-2 py-1 rounded-full">--</span>
-            <span class="bg-blue-100 text-primary text-xs px-2 py-1 rounded-full">MSFT</span>
-            <span class="bg-blue-100 text-primary text-xs px-2 py-1 rounded-full">GOOGL</span>
-            <span class="bg-blue-100 text-primary text-xs px-2 py-1 rounded-full">AMZN</span>
-            <span class="bg-blue-100 text-primary text-xs px-2 py-1 rounded-full">TSLA</span> -->
           </div>
         </div>
 
@@ -118,11 +113,6 @@
             </span>
           </div>
           <div class="mt-3 flex flex-wrap gap-2">
-            <!-- <span class="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full">JPM</span>
-            <span class="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full">BAC</span>
-            <span class="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full">META</span>
-            <span class="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full">NVDA</span>
-            <span class="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full">AAPL</span> -->
           </div>
         </div>
       </div>
@@ -431,6 +421,9 @@
 
   <script>
     let BENCHMARK_RETURN = 0;
+    let portfolioData = null; // 存储组合数据的全局变量，避免重复请求
+    const stockDataCache = new Map(); // 股票数据缓存
+
     async function fetchBenchmarkReturn() {
       try {
         const res = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=1mo&interval=1d');
@@ -446,25 +439,52 @@
       }
     }
 
+    // 带缓存的股票数据获取函数
+    async function getStockMetric(ticker) {
+      // 检查缓存中是否已有该股票数据
+      if (stockDataCache.has(ticker)) {
+        return stockDataCache.get(ticker);
+      }
+      
+      try {
+        const res = await fetch(`http://localhost:3001/api/history/${ticker}`);
+        if (!res.ok) throw new Error(`${ticker} 请求失败`);
+        const data = await res.json();
+        // 将获取的数据存入缓存
+        stockDataCache.set(ticker, data);
+        return data;
+      } catch (err) {
+        console.error(`获取 ${ticker} 数据失败:`, err);
+        return null;
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', async () => {
-      BENCHMARK_RETURN = await fetchBenchmarkReturn();
+      // BENCHMARK_RETURN = await fetchBenchmarkReturn();
+      BENCHMARK_RETURN = 0.3%
+      // 先加载主数据，再加载依赖它的其他数据
+      await loadPortfolioData();
       loadPortfolioTags();
-      loadPortfolioData();
       loadStockMetrics();
     });
 
     // 初始化图表
     function initCharts(data) {
+      // 确保数据存在
+      if (!data || !data.dates || !data.portfolio1 || !data.portfolio2) return;
+      
       // 格式化日期显示 (仅显示月-日)
       const formattedDates = data.dates.map(date => {
         const d = new Date(date);
         return `${d.getMonth() + 1}-${d.getDate()}`;
       });
+      
       // 计算收益率数据 (基于初始值的百分比变化)
       const getReturnRates = (values) => {
         const initial = values[0];
         return values.map(value => ((value - initial) / initial * 100).toFixed(2));
       };
+      
       const portfolio1Returns = getReturnRates(data.portfolio1);
       const portfolio2Returns = getReturnRates(data.portfolio2);
   
@@ -528,21 +548,20 @@
         }
       });
   
-      // ---- 资产配置（行业分布，需自行适配你的 stockIndustries 数据）----
+      // 资产配置（行业分布）
       function calculateIndustryDistribution(stockArr) {
-        // 先读取前端本地或后端接口 stockIndustries，或补全
-        const distribution = { "科技": 0, "金融": 0, "医疗": 0, "能源": 0, "工业": 0, "其他": 0 };
+        const distribution = { "科技": 0, "金融": 0, "消费": 0, "医疗": 0, "能源": 0, "工业": 0, "其他": 0 };
         let total = 0;
-        // 累加各行业的权重
+        
         stockArr.forEach(stock => {
-          // 从stockIndustries对象获取行业分类，未找到的归类为"其他"
           const industry = stockIndustries[stock.symbol] || "其他";
-          // 将字符串比例转换为数字并累加
           distribution[industry] += parseFloat(stock.proportion);
         });
+        
         return distribution;
       }
-      // 使用后端返回的股票和权重数据
+      
+      // 使用已缓存的股票和权重数据
       const dist1 = calculateIndustryDistribution(data.stocks[0]);
       const dist2 = calculateIndustryDistribution(data.stocks[1]);
   
@@ -598,23 +617,25 @@
   
     // 更新统计指标数据
     function updateMetrics(metrics) {
-    // -------- 投资组合1 --------
-      document.getElementById('p1-totalReturn').textContent = metrics.portfolio1.totalReturn;
-      document.getElementById('p1-volatility').textContent = metrics.portfolio1.volatility;
-      document.getElementById('p1-sharpe').textContent = metrics.portfolio1.sharpe;
-      document.getElementById('p1-maxDrawdown').textContent = metrics.portfolio1.maxDrawdown;
+      if (!metrics) return;
+      
+      // 投资组合1
+      document.getElementById('p1-totalReturn').textContent = metrics.portfolio1?.totalReturn || '--';
+      document.getElementById('p1-volatility').textContent = metrics.portfolio1?.volatility || '--';
+      document.getElementById('p1-sharpe').textContent = metrics.portfolio1?.sharpe || '--';
+      document.getElementById('p1-maxDrawdown').textContent = metrics.portfolio1?.maxDrawdown || '--';
 
-      // ---- 总收益率优于市场 or 逊于市场 ----
-      let p1Total = parseFloat(metrics.portfolio1.totalReturn);
-      let status1 = p1Total > BENCHMARK_RETURN * 100 ? "优于市场" : "逊于市场";
-      let status1Color = p1Total > BENCHMARK_RETURN * 100 ? "text-success" : "text-danger";
-      let p1ReturnIcon = p1Total > BENCHMARK_RETURN * 100 ? "caret-up" : "caret-down";
+      // 总收益率优于市场 or 逊于市场
+      let p1Total = parseFloat(metrics.portfolio1?.totalReturn || 0);
+      let status1 = p1Total > BENCHMARK_RETURN ? "优于市场" : "逊于市场";
+      let status1Color = p1Total > BENCHMARK_RETURN ? "text-success" : "text-danger";
+      let p1ReturnIcon = p1Total > BENCHMARK_RETURN ? "caret-up" : "caret-down";
       document.getElementById('portfolio1-return').innerHTML =
         `<i class="fa fa-${p1ReturnIcon} ${status1Color} mr-1"></i>
-        <span class="${status1Color}">${metrics.portfolio1.totalReturn}</span>`;
+        <span class="${status1Color}">${metrics.portfolio1?.totalReturn || '--'}</span>`;
 
-      // ---- 风险指标 ----
-      let p1Vol = parseFloat(metrics.portfolio1.volatility);
+      // 风险指标
+      let p1Vol = parseFloat(metrics.portfolio1?.volatility || 0);
       let volLevel1, volLevelColor1, volIcon1;
       if (p1Vol < 10) {
         volLevel1 = '低风险'; volLevelColor1 = 'text-success'; volIcon1 = 'fa-check-circle';
@@ -628,8 +649,8 @@
       document.getElementById('p1-volatility').nextElementSibling.className =
         `${volLevelColor1} text-sm flex items-center mt-1`;
 
-      // ---- 夏普比率 ----
-      let p1Sharpe = parseFloat(metrics.portfolio1.sharpe);
+      // 夏普比率
+      let p1Sharpe = parseFloat(metrics.portfolio1?.sharpe || 0);
       let sharpeLevel1, sharpeColor1, sharpeIcon1;
       if (p1Sharpe >= 1) {
         sharpeLevel1 = '优秀'; sharpeColor1 = 'text-success'; sharpeIcon1 = 'fa-trophy';
@@ -645,27 +666,27 @@
       document.getElementById('p1-sharpe').nextElementSibling.className =
         `${sharpeColor1} text-sm flex items-center mt-1`;
 
-      // -------- 投资组合2 --------
-      document.getElementById('p2-totalReturn').textContent = metrics.portfolio2.totalReturn;
-      document.getElementById('p2-volatility').textContent = metrics.portfolio2.volatility;
-      document.getElementById('p2-sharpe').textContent = metrics.portfolio2.sharpe;
-      document.getElementById('p2-maxDrawdown').textContent = metrics.portfolio2.maxDrawdown;
+      // 投资组合2
+      document.getElementById('p2-totalReturn').textContent = metrics.portfolio2?.totalReturn || '--';
+      document.getElementById('p2-volatility').textContent = metrics.portfolio2?.volatility || '--';
+      document.getElementById('p2-sharpe').textContent = metrics.portfolio2?.sharpe || '--';
+      document.getElementById('p2-maxDrawdown').textContent = metrics.portfolio2?.maxDrawdown || '--';
 
       // 总收益率描述
-      let p2Total = parseFloat(metrics.portfolio2.totalReturn);
-      let status2 = p2Total > BENCHMARK_RETURN * 100 ? "优于市场" : "逊于市场";
-      let status2Color = p2Total > BENCHMARK_RETURN * 100 ? "text-success" : "text-danger";
-      let p2ReturnIcon = p2Total > BENCHMARK_RETURN * 100 ? "caret-up" : "caret-down";
+      let p2Total = parseFloat(metrics.portfolio2?.totalReturn || 0);
+      let status2 = p2Total > BENCHMARK_RETURN ? "优于市场" : "逊于市场";
+      let status2Color = p2Total > BENCHMARK_RETURN ? "text-success" : "text-danger";
+      let p2ReturnIcon = p2Total > BENCHMARK_RETURN ? "caret-up" : "caret-down";
       document.getElementById('p2-return-trend').innerHTML =
         `<i class="fa fa-${p2ReturnIcon} mr-1"></i> ${status2}`;
       document.getElementById('p2-return-trend').className =
         `${status2Color} text-sm flex items-center mt-1`;
       document.getElementById('portfolio2-return').innerHTML =
         `<i class="fa fa-${p2ReturnIcon} ${status2Color} mr-1"></i>
-        <span class="${status2Color}">${metrics.portfolio2.totalReturn}</span>`;
+        <span class="${status2Color}">${metrics.portfolio2?.totalReturn || '--'}</span>`;
 
       // 风险指标
-      let p2Vol = parseFloat(metrics.portfolio2.volatility);
+      let p2Vol = parseFloat(metrics.portfolio2?.volatility || 0);
       let volLevel2, volLevelColor2, volIcon2;
       if (p2Vol < 10) {
         volLevel2 = '低风险'; volLevelColor2 = 'text-success'; volIcon2 = 'fa-check-circle';
@@ -680,7 +701,7 @@
         `${volLevelColor2} text-sm flex items-center mt-1`;
 
       // 夏普比率
-      let p2Sharpe = parseFloat(metrics.portfolio2.sharpe);
+      let p2Sharpe = parseFloat(metrics.portfolio2?.sharpe || 0);
       let sharpeLevel2, sharpeColor2, sharpeIcon2;
       if (p2Sharpe >= 1) {
         sharpeLevel2 = '优秀'; sharpeColor2 = 'text-success'; sharpeIcon2 = 'fa-trophy';
@@ -699,79 +720,79 @@
 
   
     // 组合顶部名称和成分股标签，动态渲染
-    async function loadPortfolioTags() {
-      try {
-        const response = await fetch('http://localhost:3001/api/portfolio/compare');
-        if (!response.ok) throw new Error('加载组合标签失败');
-        const data = await response.json();
-  
-        // 渲染组合1和2的标签
-        const group1Div = document.querySelector('.grid .bg-blue-50 .mt-3');
-        const group2Div = document.querySelector('.grid .bg-green-50 .mt-3');
+    function loadPortfolioTags() {
+      if (!portfolioData) return;
+      
+      // 渲染组合1和2的标签
+      const group1Div = document.querySelector('.grid .bg-blue-50 .mt-3');
+      const group2Div = document.querySelector('.grid .bg-green-50 .mt-3');
+      if (group1Div && group2Div) {
         group1Div.innerHTML = '';
         group2Div.innerHTML = '';
-        data.stocks[0].forEach(stock =>
+        
+        portfolioData.stocks[0]?.forEach(stock =>
           group1Div.innerHTML += `<span class="bg-blue-100 text-primary text-xs px-2 py-1 rounded-full">${stock.symbol}</span>`
         );
-        data.stocks[1].forEach(stock =>
+        
+        portfolioData.stocks[1]?.forEach(stock =>
           group2Div.innerHTML += `<span class="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full">${stock.symbol}</span>`
         );
   
         // 动态渲染组合名称
-        document.querySelector('.bg-blue-50 h3').textContent = '投资组合1: '+data.names[0] || '投资组合 1';
-        document.querySelector('.bg-green-50 h3').textContent = '投资组合2: ' + data.names[1] || '投资组合 2';
-      } catch (err) {
-        console.error('渲染组合标签失败', err);
+        const portfolio1Title = document.querySelector('.bg-blue-50 h3');
+        const portfolio2Title = document.querySelector('.bg-green-50 h3');
+        if (portfolio1Title && portfolio2Title) {
+          portfolio1Title.textContent = `投资组合1: ${portfolioData.names?.[0] || '未命名'}`;
+          portfolio2Title.textContent = `投资组合2: ${portfolioData.names?.[1] || '未命名'}`;
+        }
       }
     }
   
     // 加载主要数据（收益/资产配置/指标等）
     async function loadPortfolioData() {
       try {
+        // 如果已有数据，直接使用缓存
+        if (portfolioData) {
+          initCharts(portfolioData);
+          updateMetrics(portfolioData.metrics);
+          return;
+        }
+        
         const response = await fetch('http://localhost:3001/api/portfolio/compare');
         if (!response.ok) throw new Error('数据获取失败');
-        const data = await response.json();
-        // 图表
-        initCharts(data);
-        // 指标
-        updateMetrics(data.metrics);
+        
+        portfolioData = await response.json();
+        initCharts(portfolioData);
+        updateMetrics(portfolioData.metrics);
       } catch (error) {
         console.error('加载数据出错:', error);
       }
     }
   
-    // 获取某股票SMA/VWAP/volatility（如需联动可改为数据库内容，或者仍用静态股票列表）
-    async function fetchStockMetric(ticker) {
-      try {
-        const res = await fetch(`http://localhost:3001/api/history/${ticker}`);
-        if (!res.ok) throw new Error(`${ticker} 请求失败`);
-        return await res.json();
-      } catch (err) {
-        console.error(`获取 ${ticker} 数据失败:`, err);
-        return null;
-      }
-    }
-  
     // 加载成分股表格，动态填充数据库的成分股和权重
     async function loadStockMetrics() {
+      if (!portfolioData) return;
+      
       try {
-        const response = await fetch('http://localhost:3001/api/portfolio/compare');
-        if (!response.ok) throw new Error('加载成分股数据失败');
-        const data = await response.json();
-        const stocks1 = data.stocks[0];
-        const stocks2 = data.stocks[1];
+        const stocks1 = portfolioData.stocks[0] || [];
+        const stocks2 = portfolioData.stocks[1] || [];
   
         const tbody1 = document.querySelectorAll("table tbody")[0];
         const tbody2 = document.querySelectorAll("table tbody")[1];
+        
+        if (!tbody1 || !tbody2) return;
+        
         tbody1.innerHTML = '';
         tbody2.innerHTML = '';
   
-        for (let i = 0; i < stocks1.length; i++) {
-          const ticker = stocks1[i].symbol;
-          const weight = stocks1[i].proportion;
-          const metric = await fetchStockMetric(ticker);
+        // 处理投资组合1的股票，使用Promise.all优化并行请求
+        const portfolio1Promises = stocks1.map(async (stock) => {
+          const ticker = stock.symbol;
+          const weight = stock.proportion;
+          const metric = await getStockMetric(ticker);
+          
           if (metric) {
-            const row = `
+            return `
               <tr class="border-b border-gray-100">
                 <td class="py-2 text-sm">${ticker}</td>
                 <td class="py-2 text-sm">${weight}%</td>
@@ -779,16 +800,22 @@
                 <td class="py-2 text-sm">${metric.VWAP ? metric.VWAP.toFixed(2) : '--'}</td>
                 <td class="py-2 text-sm">${metric.volatility ? metric.volatility.toFixed(2) : '--'}</td>
               </tr>`;
-            tbody1.insertAdjacentHTML('beforeend', row);
           }
-        }
+          return '';
+        });
+        
+        // 等待所有请求完成后再渲染，避免顺序错乱
+        const portfolio1Rows = await Promise.all(portfolio1Promises);
+        tbody1.innerHTML = portfolio1Rows.join('');
   
-        for (let i = 0; i < stocks2.length; i++) {
-          const ticker = stocks2[i].symbol;
-          const weight = stocks2[i].proportion;
-          const metric = await fetchStockMetric(ticker);
+        // 处理投资组合2的股票
+        const portfolio2Promises = stocks2.map(async (stock) => {
+          const ticker = stock.symbol;
+          const weight = stock.proportion;
+          const metric = await getStockMetric(ticker); // 共享缓存
+          
           if (metric) {
-            const row = `
+            return `
               <tr class="border-b border-gray-100">
                 <td class="py-2 text-sm">${ticker}</td>
                 <td class="py-2 text-sm">${weight}%</td>
@@ -796,20 +823,17 @@
                 <td class="py-2 text-sm">${metric.VWAP ? metric.VWAP.toFixed(2) : '--'}</td>
                 <td class="py-2 text-sm">${metric.volatility ? metric.volatility.toFixed(2) : '--'}</td>
               </tr>`;
-            tbody2.insertAdjacentHTML('beforeend', row);
           }
-        }
+          return '';
+        });
+        
+        const portfolio2Rows = await Promise.all(portfolio2Promises);
+        tbody2.innerHTML = portfolio2Rows.join('');
+        
       } catch (err) {
         console.error('成分股表格加载失败:', err);
       }
     }
-  
-    // 页面加载时全部数据联动
-    document.addEventListener('DOMContentLoaded', () => {
-      loadPortfolioTags();    // 顶部成分股和名称
-      loadPortfolioData();    // 收益、配置、指标
-      loadStockMetrics();     // 成分股表格
-    });
   </script>  
 </body>
 </html>
