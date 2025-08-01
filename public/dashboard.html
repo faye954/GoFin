@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>投资组合对比 - GoFin</title>
+  <link rel="icon" href="../image/logo2.png" type="image/x-icon">
+  <link rel="shortcut icon" href="../image/logo2.png" type="image/x-icon">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="stockIndustries.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            secondary: '#0FC6C2',
+            success: '#00B42A', // 组合2原绿色
+            danger: '#F53F3F',
+            warning: '#FF7D00',
+            info: '#86909C',
+            dark: '#1D2129',
+            light: '#F2F3F5'
+          },
+          fontFamily: {
+            inter: ['Inter', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .card-hover {
+        @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+      }
+      .btn-primary {
+        @apply bg-primary text-white px-4 py-2 rounded-lg transition-all duration-300 hover:bg-primary/90 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50;
+      }
+      .btn-secondary {
+        @apply bg-white border border-primary text-primary px-4 py-2 rounded-lg transition-all duration-300 hover:bg-primary/5 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50;
+      }
+    }
+  </style>
+</head>
+
+<body class="font-inter bg-gray-50 text-dark min-h-screen flex flex-col">
+  <!-- 导航栏 -->
+  <header class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center space-x-1">
+        <img src="../image/logo2.png" alt="GoFin Logo" class="h-10 w-10">
+        <h1 class="text-xl font-bold text-primary">GoFin</h1>
+      </div>
+
+      <nav class="hidden md:flex items-center space-x-6">
+        <a href="index.html" id="nav-home" class="font-medium text-dark hover:text-primary transition-colors">首页</a>
+        <a href="favorites.html" id="nav-favorites"
+          class="font-medium text-dark hover:text-primary transition-colors">自选</a>
+        <a href="dashboard.html" id="nav-dashboard" class="font-medium text-primary border-b-2 border-primary pb-1">投资组合</a>
+      </nav>
+
+      <div class="flex items-center space-x-4">
+        <div class="relative hidden md:block">
+          <input type="text" placeholder="搜索股票..."
+            class="pl-10 pr-4 py-2 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50 w-64">
+          <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+        </div>
+
+        <button class="md:hidden text-dark text-xl">
+          <i class="fa fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主内容区 -->
+  <main class="flex-grow container mx-auto px-4 py-6">
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+      <h2 class="text-2xl font-bold mb-4">投资组合对比分析</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="bg-blue-50 rounded-lg p-4">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="font-semibold">--</h3>
+            <span id="portfolio1-return" class="text-success flex items-center">
+            </span>
+          </div>
+          <div class="mt-3 flex flex-wrap gap-2">
+          </div>
+        </div>
+
+        <div class="bg-green-50 rounded-lg p-4">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="font-semibold">--</h3>
+            <span id="portfolio2-return" class="text-success flex items-center">
+            </span>
+          </div>
+          <div class="mt-3 flex flex-wrap gap-2">
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-4 mb-6">
+        <div class="flex items-center">
+          <span class="text-sm text-gray-500 mr-2">时间范围:</span>
+          <div class="flex rounded-lg overflow-hidden border border-gray-200">
+            <button class="px-3 py-1 text-sm bg-primary text-white">1个月</button>
+          </div>
+        </div>
+
+        <div class="flex items-center">
+          <span class="text-sm text-gray-500 mr-2">图表类型:</span>
+          <div class="flex rounded-lg overflow-hidden border border-gray-200">
+            <button class="px-3 py-1 text-sm bg-primary text-white">收益率</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 图表区域 -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div class="bg-white rounded-xl shadow-sm p-6">
+        <h3 class="text-xl font-bold mb-4">投资组合收益对比</h3>
+        <div class="h-80">
+          <canvas id="performanceChart"></canvas>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm p-6">
+        <h3 class="text-xl font-bold mb-4">资产配置</h3>
+        <div class="h-80">
+          <canvas id="allocationChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- 统计数据 - 左右分类展示 -->
+    <div class="mb-6">
+      <h3 class="text-xl font-bold mb-4">投资组合表现指标对比</h3>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- 左侧：投资组合 1 指标 -->
+        <div>
+          <h4 class="font-semibold mb-3 text-primary flex items-center">
+            <i class="fa fa-bar-chart mr-2"></i>投资组合 1 指标
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <!-- 总收益率 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+              <h5 class="text-gray-500 text-sm mb-2">总收益率</h5>
+              <div class="flex items-end justify-between">
+                <div>
+                  <p id="p1-totalReturn" class="text-3xl font-bold">--</p>
+                  <p class="text-success text-sm flex items-center mt-1">
+                    <i class="fa fa-caret-up mr-1"></i> 优于市场
+                  </p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                  <i class="fa fa-line-chart text-primary"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- 风险指标 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+              <h5 class="text-gray-500 text-sm mb-2">风险指标</h5>
+              <div class="flex items-end justify-between">
+                <div>
+                  <p id="p1-volatility" class="text-3xl font-bold">--</p>
+                  <p class="text-warning text-sm flex items-center mt-1">
+                    <i class="fa fa-exclamation-circle mr-1"></i> 中等风险
+                  </p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                  <i class="fa fa-shield text-primary"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- 夏普比率 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+              <h5 class="text-gray-500 text-sm mb-2">夏普比率</h5>
+              <div class="flex items-end justify-between">
+                <div>
+                  <p id="p1-sharpe" class="text-3xl font-bold">--</p>
+                  <p class="text-success text-sm flex items-center mt-1">
+                    <i class="fa fa-check-circle mr-1"></i> 良好
+                  </p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                  <i class="fa fa-trophy text-primary"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- 最大回撤 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+              <h5 class="text-gray-500 text-sm mb-2">最大回撤</h5>
+              <div class="flex items-end justify-between">
+                <div>
+                  <p id="p1-maxDrawdown" class="text-3xl font-bold">--</p>
+                  <p class="text-gray-500 text-sm flex items-center mt-1">
+                    <i class="fa fa-calendar mr-1"></i> 过去 1 个月
+                  </p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                  <i class="fa fa-arrow-down text-primary"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧：投资组合 2 指标 -->
+        <div>
+          <h4 class="font-semibold mb-3 text-green-600 flex items-center">
+            <i class="fa fa-bar-chart mr-2"></i>投资组合 2 指标
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <!-- 总收益率 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+              <h5 class="text-gray-500 text-sm mb-2">总收益率</h5>
+              <div class="flex items-end justify-between">
+                <div>
+                  <p id="p2-totalReturn" class="text-3xl font-bold">--</p>
+                  <p id="p2-return-trend" class="text-danger text-sm flex items-center mt-1">
+                    <i class="fa fa-caret-down mr-1"></i> 逊于市场
+                  </p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                  <i class="fa fa-line-chart text-green-600"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- 风险指标 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+              <h5 class="text-gray-500 text-sm mb-2">风险指标</h5>
+              <div class="flex items-end justify-between">
+                <div>
+                  <p id="p2-volatility" class="text-3xl font-bold">--</p>
+                  <p class="text-success text-sm flex items-center mt-1">
+                    <i class="fa fa-check-circle mr-1"></i> 低风险
+                  </p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                  <i class="fa fa-shield text-green-600"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- 夏普比率 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+              <h5 class="text-gray-500 text-sm mb-2">夏普比率</h5>
+              <div class="flex items-end justify-between">
+                <div>
+                  <p id="p2-sharpe" class="text-3xl font-bold">--</p>
+                  <p id="p2-sharpe-desc" class="text-warning text-sm flex items-center mt-1">
+                    <i class="fa fa-exclamation-circle mr-1"></i> 一般
+                  </p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                  <i class="fa fa-trophy text-green-600"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- 最大回撤 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+              <h5 class="text-gray-500 text-sm mb-2">最大回撤</h5>
+              <div class="flex items-end justify-between">
+                <div>
+                  <p id="p2-maxDrawdown" class="text-3xl font-bold">--</p>
+                  <p class="text-gray-500 text-sm flex items-center mt-1">
+                    <i class="fa fa-calendar mr-1"></i> 过去 1 个月
+                  </p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                  <i class="fa fa-arrow-down text-green-600"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 股票详情 -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <h3 class="text-xl font-bold mb-4">组合成分股表现</h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h4 class="font-semibold mb-3">投资组合 1 成分</h4>
+          <div class="overflow-x-auto">
+            <table class="min-w-full">
+              <thead>
+                <tr class="border-b border-gray-200">
+                  <th class="py-3 text-left text-sm font-medium text-gray-500">股票代码</th>
+                  <th class="py-3 text-left text-sm font-medium text-gray-500">权重</th>
+                  <th class="py-3 text-left text-sm font-medium text-gray-500">SMA</th>
+                  <th class="py-3 text-left text-sm font-medium text-gray-500">VWAP</th>
+                  <th class="py-3 text-left text-sm font-medium text-gray-500">volatility</th>
+
+                </tr>
+              </thead>
+              <tbody>
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="font-semibold mb-3">投资组合 2 成分</h4>
+          <div class="overflow-x-auto">
+            <table class="min-w-full">
+              <thead>
+                <tr class="border-b border-gray-200">
+                  <th class="py-3 text-left text-sm font-medium text-gray-500">股票代码</th>
+                  <th class="py-3 text-left text-sm font-medium text-gray-500">权重</th>
+                  <th class="py-3 text-left text-sm font-medium text-gray-500">SMA</th>
+                  <th class="py-3 text-left text-sm font-medium text-gray-500">VWAP</th>
+                  <th class="py-3 text-left text-sm font-medium text-gray-500">volatility</th>
+                </tr>
+              </thead>
+              <tbody>
+                
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="bg-white border-t border-gray-200 mt-12">
+    <div class="container mx-auto px-4 py-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div>
+          <div class="flex items-center space-x-1 mb-4">
+            <img src="../image/logo2.png" alt="GoFin Logo" class="h-10 w-10">
+            <h3 class="text-lg font-bold text-primary">GoFin</h3>
+          </div>
+          <p class="text-gray-500 text-sm">专业的股票投资组合分析工具，帮助你做出更明智的投资决策。</p>
+        </div>
+
+        <div>
+          <h4 class="font-semibold mb-4">产品</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="#" class="text-gray-500 hover:text-primary">股票分析</a></li>
+            <li><a href="#" class="text-gray-500 hover:text-primary">投资组合</a></li>
+            <li><a href="#" class="text-gray-500 hover:text-primary">市场概览</a></li>
+            <li><a href="#" class="text-gray-500 hover:text-primary">财经日历</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-semibold mb-4">支持</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="#" class="text-gray-500 hover:text-primary">帮助中心</a></li>
+            <li><a href="#" class="text-gray-500 hover:text-primary">使用教程</a></li>
+            <li><a href="#" class="text-gray-500 hover:text-primary">API文档</a></li>
+            <li><a href="#" class="text-gray-500 hover:text-primary">联系我们</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-semibold mb-4">关注我们</h4>
+          <div class="flex space-x-4 mb-4">
+            <a href="#"
+              class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-primary hover:text-white transition-colors">
+              <i class="fa fa-weibo"></i>
+            </a>
+            <a href="#"
+              class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-primary hover:text-white transition-colors">
+              <i class="fa fa-wechat"></i>
+            </a>
+            <a href="#"
+              class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-primary hover:text-white transition-colors">
+              <i class="fa fa-twitter"></i>
+            </a>
+          </div>
+          <p class="text-gray-500 text-sm">订阅我们的财经资讯</p>
+          <div class="mt-2 flex">
+            <input type="email" placeholder="您的邮箱地址"
+              class="flex-grow px-3 py-2 rounded-l-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50">
+            <button class="bg-primary text-white px-4 py-2 rounded-r-lg">订阅</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-200 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+        <p class="text-gray-500 text-sm">© 2025 GoFin. 保留所有权利。</p>
+        <div class="flex space-x-4 mt-4 md:mt-0">
+          <a href="#" class="text-gray-500 hover:text-primary text-sm">隐私政策</a>
+          <a href="#" class="text-gray-500 hover:text-primary text-sm">服务条款</a>
+          <a href="#" class="text-gray-500 hover:text-primary text-sm">免责声明</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    let BENCHMARK_RETURN = 0;
+    let portfolioData = null; // 存储组合数据的全局变量，避免重复请求
+    const stockDataCache = new Map(); // 股票数据缓存
+
+    async function fetchBenchmarkReturn() {
+      try {
+        const res = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=1mo&interval=1d');
+        const data = await res.json();
+        if (!data.chart || !data.chart.result || !data.chart.result[0]) return 0;
+        const result = data.chart.result[0];
+        const closes = result.indicators.adjclose[0].adjclose;
+        const first = closes[0];
+        const last = closes[closes.length - 1];
+        return ((last - first) / first * 100);
+      } catch (e) {
+        return 0;
+      }
+    }
+
+    // 带缓存的股票数据获取函数
+    async function getStockMetric(ticker) {
+      // 检查缓存中是否已有该股票数据
+      if (stockDataCache.has(ticker)) {
+        return stockDataCache.get(ticker);
+      }
+      
+      try {
+        const res = await fetch(`http://localhost:3001/api/history/${ticker}`);
+        if (!res.ok) throw new Error(`${ticker} 请求失败`);
+        const data = await res.json();
+        // 将获取的数据存入缓存
+        stockDataCache.set(ticker, data);
+        return data;
+      } catch (err) {
+        console.error(`获取 ${ticker} 数据失败:`, err);
+        return null;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // BENCHMARK_RETURN = await fetchBenchmarkReturn();
+      BENCHMARK_RETURN = 0.3%
+      // 先加载主数据，再加载依赖它的其他数据
+      await loadPortfolioData();
+      loadPortfolioTags();
+      loadStockMetrics();
+    });
+
+    // 初始化图表
+    function initCharts(data) {
+      // 确保数据存在
+      if (!data || !data.dates || !data.portfolio1 || !data.portfolio2) return;
+      
+      // 格式化日期显示 (仅显示月-日)
+      const formattedDates = data.dates.map(date => {
+        const d = new Date(date);
+        return `${d.getMonth() + 1}-${d.getDate()}`;
+      });
+      
+      // 计算收益率数据 (基于初始值的百分比变化)
+      const getReturnRates = (values) => {
+        const initial = values[0];
+        return values.map(value => ((value - initial) / initial * 100).toFixed(2));
+      };
+      
+      const portfolio1Returns = getReturnRates(data.portfolio1);
+      const portfolio2Returns = getReturnRates(data.portfolio2);
+  
+      // 收益对比图表
+      const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+      new Chart(performanceCtx, {
+        type: 'line',
+        data: {
+          labels: formattedDates,
+          datasets: [
+            {
+              label: data.names && data.names[0] ? data.names[0] : '投资组合 1',
+              data: portfolio1Returns,
+              borderColor: '#165DFF',
+              backgroundColor: 'rgba(22, 93, 255, 0.1)',
+              borderWidth: 2,
+              tension: 0.4,
+              fill: true
+            },
+            {
+              label: data.names && data.names[1] ? data.names[1] : '投资组合 2',
+              data: portfolio2Returns,
+              borderColor: '#00B42A',
+              backgroundColor: 'rgba(0, 180, 42, 0.1)',
+              borderWidth: 2,
+              tension: 0.4,
+              fill: true
+            },
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top' },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              callbacks: {
+                label: function (context) {
+                  return `${context.dataset.label}: ${context.raw}%`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: { grid: { display: false } },
+            y: {
+              ticks: { callback: value => value + '%' },
+              title: {
+                display: true,
+                text: '收益率'
+              }
+            }
+          },
+          interaction: {
+            mode: 'nearest',
+            axis: 'x',
+            intersect: false
+          }
+        }
+      });
+  
+      // 资产配置（行业分布）
+      function calculateIndustryDistribution(stockArr) {
+        const distribution = { "科技": 0, "金融": 0, "消费": 0, "医疗": 0, "能源": 0, "工业": 0, "其他": 0 };
+        let total = 0;
+        
+        stockArr.forEach(stock => {
+          const industry = stockIndustries[stock.symbol] || "其他";
+          distribution[industry] += parseFloat(stock.proportion);
+        });
+        
+        return distribution;
+      }
+      
+      // 使用已缓存的股票和权重数据
+      const dist1 = calculateIndustryDistribution(data.stocks[0]);
+      const dist2 = calculateIndustryDistribution(data.stocks[1]);
+  
+      // 资产配置图表
+      const allocationCtx = document.getElementById('allocationChart').getContext('2d');
+      new Chart(allocationCtx, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(dist1),
+          datasets: [
+            {
+              label: data.names && data.names[0] ? data.names[0] : '投资组合 1',
+              data: Object.values(dist1),
+              backgroundColor: '#165DFF',
+              borderRadius: 4
+            },
+            {
+              label: data.names && data.names[1] ? data.names[1] : '投资组合 2',
+              data: Object.values(dist2),
+              backgroundColor: '#00B42A',
+              borderRadius: 4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top' },
+            tooltip:{
+              callbacks:{
+                label: function (context){
+                  return context.dataset.label + ': ' + context.raw + '%';
+                }
+              }
+            }
+          },
+          scales: {
+            x: { grid: { display: false } },
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: { callback: value => value + '%' },
+              title: {
+                display: true,
+                text: '占比'
+              }
+            }
+          }
+        }
+      });
+    }
+  
+    // 更新统计指标数据
+    function updateMetrics(metrics) {
+      if (!metrics) return;
+      
+      // 投资组合1
+      document.getElementById('p1-totalReturn').textContent = metrics.portfolio1?.totalReturn || '--';
+      document.getElementById('p1-volatility').textContent = metrics.portfolio1?.volatility || '--';
+      document.getElementById('p1-sharpe').textContent = metrics.portfolio1?.sharpe || '--';
+      document.getElementById('p1-maxDrawdown').textContent = metrics.portfolio1?.maxDrawdown || '--';
+
+      // 总收益率优于市场 or 逊于市场
+      let p1Total = parseFloat(metrics.portfolio1?.totalReturn || 0);
+      let status1 = p1Total > BENCHMARK_RETURN ? "优于市场" : "逊于市场";
+      let status1Color = p1Total > BENCHMARK_RETURN ? "text-success" : "text-danger";
+      let p1ReturnIcon = p1Total > BENCHMARK_RETURN ? "caret-up" : "caret-down";
+      document.getElementById('portfolio1-return').innerHTML =
+        `<i class="fa fa-${p1ReturnIcon} ${status1Color} mr-1"></i>
+        <span class="${status1Color}">${metrics.portfolio1?.totalReturn || '--'}</span>`;
+
+      // 风险指标
+      let p1Vol = parseFloat(metrics.portfolio1?.volatility || 0);
+      let volLevel1, volLevelColor1, volIcon1;
+      if (p1Vol < 10) {
+        volLevel1 = '低风险'; volLevelColor1 = 'text-success'; volIcon1 = 'fa-check-circle';
+      } else if (p1Vol < 20) {
+        volLevel1 = '中等风险'; volLevelColor1 = 'text-warning'; volIcon1 = 'fa-exclamation-circle';
+      } else {
+        volLevel1 = '高风险'; volLevelColor1 = 'text-danger'; volIcon1 = 'fa-times-circle';
+      }
+      document.getElementById('p1-volatility').nextElementSibling.innerHTML =
+        `<i class="fa ${volIcon1} mr-1"></i> ${volLevel1}`;
+      document.getElementById('p1-volatility').nextElementSibling.className =
+        `${volLevelColor1} text-sm flex items-center mt-1`;
+
+      // 夏普比率
+      let p1Sharpe = parseFloat(metrics.portfolio1?.sharpe || 0);
+      let sharpeLevel1, sharpeColor1, sharpeIcon1;
+      if (p1Sharpe >= 1) {
+        sharpeLevel1 = '优秀'; sharpeColor1 = 'text-success'; sharpeIcon1 = 'fa-trophy';
+      } else if (p1Sharpe >= 0.5) {
+        sharpeLevel1 = '良好'; sharpeColor1 = 'text-success'; sharpeIcon1 = 'fa-check-circle';
+      } else if (p1Sharpe >= 0) {
+        sharpeLevel1 = '一般'; sharpeColor1 = 'text-warning'; sharpeIcon1 = 'fa-exclamation-circle';
+      } else {
+        sharpeLevel1 = '较差'; sharpeColor1 = 'text-danger'; sharpeIcon1 = 'fa-times-circle';
+      }
+      document.getElementById('p1-sharpe').nextElementSibling.innerHTML =
+        `<i class="fa ${sharpeIcon1} mr-1"></i> ${sharpeLevel1}`;
+      document.getElementById('p1-sharpe').nextElementSibling.className =
+        `${sharpeColor1} text-sm flex items-center mt-1`;
+
+      // 投资组合2
+      document.getElementById('p2-totalReturn').textContent = metrics.portfolio2?.totalReturn || '--';
+      document.getElementById('p2-volatility').textContent = metrics.portfolio2?.volatility || '--';
+      document.getElementById('p2-sharpe').textContent = metrics.portfolio2?.sharpe || '--';
+      document.getElementById('p2-maxDrawdown').textContent = metrics.portfolio2?.maxDrawdown || '--';
+
+      // 总收益率描述
+      let p2Total = parseFloat(metrics.portfolio2?.totalReturn || 0);
+      let status2 = p2Total > BENCHMARK_RETURN ? "优于市场" : "逊于市场";
+      let status2Color = p2Total > BENCHMARK_RETURN ? "text-success" : "text-danger";
+      let p2ReturnIcon = p2Total > BENCHMARK_RETURN ? "caret-up" : "caret-down";
+      document.getElementById('p2-return-trend').innerHTML =
+        `<i class="fa fa-${p2ReturnIcon} mr-1"></i> ${status2}`;
+      document.getElementById('p2-return-trend').className =
+        `${status2Color} text-sm flex items-center mt-1`;
+      document.getElementById('portfolio2-return').innerHTML =
+        `<i class="fa fa-${p2ReturnIcon} ${status2Color} mr-1"></i>
+        <span class="${status2Color}">${metrics.portfolio2?.totalReturn || '--'}</span>`;
+
+      // 风险指标
+      let p2Vol = parseFloat(metrics.portfolio2?.volatility || 0);
+      let volLevel2, volLevelColor2, volIcon2;
+      if (p2Vol < 10) {
+        volLevel2 = '低风险'; volLevelColor2 = 'text-success'; volIcon2 = 'fa-check-circle';
+      } else if (p2Vol < 20) {
+        volLevel2 = '中等风险'; volLevelColor2 = 'text-warning'; volIcon2 = 'fa-exclamation-circle';
+      } else {
+        volLevel2 = '高风险'; volLevelColor2 = 'text-danger'; volIcon2 = 'fa-times-circle';
+      }
+      document.getElementById('p2-volatility').nextElementSibling.innerHTML =
+        `<i class="fa ${volIcon2} mr-1"></i> ${volLevel2}`;
+      document.getElementById('p2-volatility').nextElementSibling.className =
+        `${volLevelColor2} text-sm flex items-center mt-1`;
+
+      // 夏普比率
+      let p2Sharpe = parseFloat(metrics.portfolio2?.sharpe || 0);
+      let sharpeLevel2, sharpeColor2, sharpeIcon2;
+      if (p2Sharpe >= 1) {
+        sharpeLevel2 = '优秀'; sharpeColor2 = 'text-success'; sharpeIcon2 = 'fa-trophy';
+      } else if (p2Sharpe >= 0.5) {
+        sharpeLevel2 = '良好'; sharpeColor2 = 'text-success'; sharpeIcon2 = 'fa-check-circle';
+      } else if (p2Sharpe >= 0) {
+        sharpeLevel2 = '一般'; sharpeColor2 = 'text-warning'; sharpeIcon2 = 'fa-exclamation-circle';
+      } else {
+        sharpeLevel2 = '较差'; sharpeColor2 = 'text-danger'; sharpeIcon2 = 'fa-times-circle';
+      }
+      document.getElementById('p2-sharpe-desc').innerHTML =
+        `<i class="fa ${sharpeIcon2} mr-1"></i> ${sharpeLevel2}`;
+      document.getElementById('p2-sharpe-desc').className =
+        `${sharpeColor2} text-sm flex items-center mt-1`;
+    }
+
+  
+    // 组合顶部名称和成分股标签，动态渲染
+    function loadPortfolioTags() {
+      if (!portfolioData) return;
+      
+      // 渲染组合1和2的标签
+      const group1Div = document.querySelector('.grid .bg-blue-50 .mt-3');
+      const group2Div = document.querySelector('.grid .bg-green-50 .mt-3');
+      if (group1Div && group2Div) {
+        group1Div.innerHTML = '';
+        group2Div.innerHTML = '';
+        
+        portfolioData.stocks[0]?.forEach(stock =>
+          group1Div.innerHTML += `<span class="bg-blue-100 text-primary text-xs px-2 py-1 rounded-full">${stock.symbol}</span>`
+        );
+        
+        portfolioData.stocks[1]?.forEach(stock =>
+          group2Div.innerHTML += `<span class="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full">${stock.symbol}</span>`
+        );
+  
+        // 动态渲染组合名称
+        const portfolio1Title = document.querySelector('.bg-blue-50 h3');
+        const portfolio2Title = document.querySelector('.bg-green-50 h3');
+        if (portfolio1Title && portfolio2Title) {
+          portfolio1Title.textContent = `投资组合1: ${portfolioData.names?.[0] || '未命名'}`;
+          portfolio2Title.textContent = `投资组合2: ${portfolioData.names?.[1] || '未命名'}`;
+        }
+      }
+    }
+  
+    // 加载主要数据（收益/资产配置/指标等）
+    async function loadPortfolioData() {
+      try {
+        // 如果已有数据，直接使用缓存
+        if (portfolioData) {
+          initCharts(portfolioData);
+          updateMetrics(portfolioData.metrics);
+          return;
+        }
+        
+        const response = await fetch('http://localhost:3001/api/portfolio/compare');
+        if (!response.ok) throw new Error('数据获取失败');
+        
+        portfolioData = await response.json();
+        initCharts(portfolioData);
+        updateMetrics(portfolioData.metrics);
+      } catch (error) {
+        console.error('加载数据出错:', error);
+      }
+    }
+  
+    // 加载成分股表格，动态填充数据库的成分股和权重
+    async function loadStockMetrics() {
+      if (!portfolioData) return;
+      
+      try {
+        const stocks1 = portfolioData.stocks[0] || [];
+        const stocks2 = portfolioData.stocks[1] || [];
+  
+        const tbody1 = document.querySelectorAll("table tbody")[0];
+        const tbody2 = document.querySelectorAll("table tbody")[1];
+        
+        if (!tbody1 || !tbody2) return;
+        
+        tbody1.innerHTML = '';
+        tbody2.innerHTML = '';
+  
+        // 处理投资组合1的股票，使用Promise.all优化并行请求
+        const portfolio1Promises = stocks1.map(async (stock) => {
+          const ticker = stock.symbol;
+          const weight = stock.proportion;
+          const metric = await getStockMetric(ticker);
+          
+          if (metric) {
+            return `
+              <tr class="border-b border-gray-100">
+                <td class="py-2 text-sm">${ticker}</td>
+                <td class="py-2 text-sm">${weight}%</td>
+                <td class="py-2 text-sm">${metric.SMA ? metric.SMA.toFixed(2) : '--'}</td>
+                <td class="py-2 text-sm">${metric.VWAP ? metric.VWAP.toFixed(2) : '--'}</td>
+                <td class="py-2 text-sm">${metric.volatility ? metric.volatility.toFixed(2) : '--'}</td>
+              </tr>`;
+          }
+          return '';
+        });
+        
+        // 等待所有请求完成后再渲染，避免顺序错乱
+        const portfolio1Rows = await Promise.all(portfolio1Promises);
+        tbody1.innerHTML = portfolio1Rows.join('');
+  
+        // 处理投资组合2的股票
+        const portfolio2Promises = stocks2.map(async (stock) => {
+          const ticker = stock.symbol;
+          const weight = stock.proportion;
+          const metric = await getStockMetric(ticker); // 共享缓存
+          
+          if (metric) {
+            return `
+              <tr class="border-b border-gray-100">
+                <td class="py-2 text-sm">${ticker}</td>
+                <td class="py-2 text-sm">${weight}%</td>
+                <td class="py-2 text-sm">${metric.SMA ? metric.SMA.toFixed(2) : '--'}</td>
+                <td class="py-2 text-sm">${metric.VWAP ? metric.VWAP.toFixed(2) : '--'}</td>
+                <td class="py-2 text-sm">${metric.volatility ? metric.volatility.toFixed(2) : '--'}</td>
+              </tr>`;
+          }
+          return '';
+        });
+        
+        const portfolio2Rows = await Promise.all(portfolio2Promises);
+        tbody2.innerHTML = portfolio2Rows.join('');
+        
+      } catch (err) {
+        console.error('成分股表格加载失败:', err);
+      }
+    }
+  </script>  
+</body>
+</html>

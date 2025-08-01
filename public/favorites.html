@@ -1,0 +1,283 @@
+<!-- GoFin/public/favorites.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的自选 - GoFin</title>
+    <link rel="icon" href="../image/logo2.png" type="image/x-icon">
+    <link rel="shortcut icon" href="../image/logo2.png" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="./stockIndustries.js"></script>
+    <script src="./favorites.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#0FC6C2',
+                        success: '#00B42A',
+                        danger: '#F53F3F',
+                        warning: '#FF7D00',
+                        info: '#86909C',
+                        dark: '#1D2129',
+                        light: '#F2F3F5'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                },
+            }
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+
+            .scrollbar-hide {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-light font-inter">
+    <!-- 头部 -->
+    <!-- 导航栏 -->
+<header class="bg-white shadow-sm sticky top-0 z-50">
+  <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+    <div class="flex items-center space-x-1">
+      <img src="../image/logo2.png" alt="GoFin Logo" class="h-10 w-10">
+      <h1 class="text-xl font-bold text-primary">GoFin</h1>
+    </div>
+
+    <nav class="hidden md:flex items-center space-x-6">
+      <a href="index.html" id="nav-home" class="font-medium text-dark hover:text-primary transition-colors">首页</a>
+      <a href="favorites.html" id="nav-favorites"
+        class="font-medium text-primary border-b-2 border-primary pb-1">自选</a>
+      <a href="dashboard.html" id="nav-dashboard" class="font-medium text-dark hover:text-primary transition-colors">投资组合</a>
+    </nav>
+
+    <div class="flex items-center space-x-4">
+      <div class="relative hidden md:block">
+        <input type="text" placeholder="搜索股票..."
+          class="pl-10 pr-4 py-2 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50 w-64">
+        <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+      </div>
+
+      <button class="md:hidden text-dark text-xl">
+        <i class="fa fa-bars"></i>
+      </button>
+    </div>
+  </div>
+</header>
+
+    <!-- 主内容区 -->
+    <main class="flex-grow container mx-auto px-4 py-6">
+        <div class="flex flex-col md:flex-row gap-6">
+            <!-- 左侧：自选股列表 - 垂直滑动（浅色滚动条） -->
+            <div class="md:w-2/3 bg-white rounded-xl shadow-sm p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">我的自选</h2>
+                    <button id="createPortfolioBtn" class="bg-primary text-white px-4 py-2 rounded-lg flex items-center">
+                        <i class="fa fa-plus-circle mr-2"></i> 创建投资组合
+                    </button>
+                </div>
+
+                <div class="scroll-container">
+                    <!-- 自选股表格容器 - 应用浅色滚动条 -->
+                    <div id="favoritesContainer" class="overflow-y-auto light-scrollbar max-h-[500px] pr-2">
+                        <table class="min-w-full w-full">
+                            <thead class="sticky-header border-b border-gray-200">
+                                <tr>
+                                    <th class="py-3 text-left text-sm font-medium text-gray-500 px-2">
+                                        <div class="flex items-center">
+                                            <input type="checkbox" id="selectAll" class="mr-2">
+                                            股票代码
+                                        </div>
+                                    </th>
+                                    <th class="py-3 text-left text-sm font-medium text-gray-500 px-2">名称</th>
+                                    <th class="py-3 text-left text-sm font-medium text-gray-500 px-2">行业</th>
+                                    <th class="py-3 text-left text-sm font-medium text-gray-500 px-2">价格</th>
+                                    <th class="py-3 text-left text-sm font-medium text-gray-500 px-2">涨跌幅</th>
+                                    <th class="py-3 text-left text-sm font-medium text-gray-500 px-2">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- 自选股数据会通过JavaScript动态生成 -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 自选股垂直滚动指示器（浅色） -->
+                    <div class="absolute right-0 top-0 h-full w-1 flex items-center">
+                        <div class="scroll-indicator h-full w-1">
+                            <div id="favoritesScrollHandle" class="scroll-handle h-[100%] w-1"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 flex justify-between items-center md:hidden">
+                    <button id="mobileCreatePortfolioBtn"
+                        class="bg-primary text-white px-4 py-2 rounded-lg w-full flex items-center justify-center">
+                        <i class="fa fa-plus-circle mr-2"></i> 创建投资组合
+                    </button>
+                </div>
+            </div>
+
+            <!-- 右侧：投资组合 - 垂直滑动（浅色滚动条） -->
+            <div class="md:w-1/3 bg-white rounded-xl shadow-sm p-6">
+                <h2 class="text-xl font-bold mb-4">我的投资组合</h2>
+
+                <div class="scroll-container">
+                    <!-- 投资组合容器 - 应用浅色滚动条 -->
+                    <div id="portfoliosContainer" class="overflow-y-auto light-scrollbar max-h-[500px] pr-2">
+                        <!-- 投资组合会通过JavaScript动态生成 -->
+
+                        <div class="border border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center h-32 hover:bg-gray-50 transition-colors cursor-pointer"
+                            id="createNewPortfolio">
+                            <i class="fa fa-plus-circle text-gray-400 text-2xl mb-2"></i>
+                            <p class="text-gray-500 text-sm">创建新的投资组合</p>
+                        </div>
+                    </div>
+
+                    <!-- 投资组合垂直滚动指示器（浅色） -->
+                    <div class="absolute right-0 top-0 h-full w-1 flex items-center">
+                        <div class="scroll-indicator h-full w-1">
+                            <div id="portfoliosScrollHandle" class="scroll-handle h-[100%] w-1"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 创建投资组合模态框 -->
+    <div id="portfolioModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl shadow-lg w-full max-w-lg p-6 transform transition-all">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">创建投资组合</h3>
+                <button id="closeModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+
+            <form id="portfolioForm">
+                <div class="mb-4">
+                    <label for="portfolioName" class="block text-sm font-medium text-gray-700 mb-1">组合名称</label>
+                    <input type="text" id="portfolioName"
+                        class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        placeholder="输入投资组合名称">
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">选择股票</label>
+                    <div id="selectedStocks"
+                        class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto light-scrollbar p-2 border border-gray-200 rounded-lg">
+                        <!-- 选中的股票会通过JavaScript动态生成 -->
+                    </div>
+                    <div class="flex justify-between items-center mt-2">
+                        <p class="text-gray-500 text-sm">比例加总必须等于 100%</p>
+                        <p id="totalProportion" class="font-medium text-danger">0%</p>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3">
+                    <button type="button" id="cancelPortfolio"
+                        class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg">取消</button>
+                    <button type="submit" class="bg-primary text-white px-4 py-2 rounded-lg">创建组合</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 编辑投资组合模态框 -->
+    <div id="editPortfolioModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl shadow-lg w-full max-w-lg p-6 transform transition-all">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">编辑投资组合</h3>
+                <button id="closeEditModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+
+            <form id="editPortfolioForm">
+                <input type="hidden" id="editPortfolioId">
+                <div class="mb-4">
+                    <label for="editPortfolioName" class="block text-sm font-medium text-gray-700 mb-1">组合名称</label>
+                    <input type="text" id="editPortfolioName"
+                        class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        placeholder="输入投资组合名称">
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">选择股票</label>
+                    <div id="editSelectedStocks"
+                        class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto light-scrollbar p-2 border border-gray-200 rounded-lg">
+                        <!-- 选中的股票会通过JavaScript动态生成 -->
+                    </div>
+                    <div class="flex justify-between items-center mt-2">
+                        <p class="text-gray-500 text-sm">比例加总必须等于 100%</p>
+                        <p id="editTotalProportion" class="font-medium text-danger">0%</p>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3">
+                    <button type="button" id="cancelEditPortfolio"
+                        class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg">取消</button>
+                    <button type="submit" class="bg-primary text-white px-4 py-2 rounded-lg">保存修改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="bg-white border-t border-gray-200 mt-12">
+        <div class="container mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-1 mb-4">
+                        <img src="../image/logo2.png" alt="GoFin Logo" class="h-10 w-10">
+                        <h3 class="text-lg font-bold text-primary">GoFin</h3>
+                    </div>
+                    <p class="text-gray-500 text-sm">专业的股票投资组合分析工具，帮助你做出更明智的投资决策。</p>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold mb-4">产品</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-500 hover:text-primary">投资组合分析</a></li>
+                        <li><a href="#" class="text-gray-500 hover:text-primary">自选股管理</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold mb-4">关于我们</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-500 hover:text-primary">公司介绍</a></li>
+                        <li><a href="#" class="text-gray-500 hover:text-primary">团队成员</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold mb-4">联系我们</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-500 hover:text-primary">客服邮箱</a></li>
+                        <li><a href="#" class="text-gray-500 hover:text-primary">社交媒体</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>
